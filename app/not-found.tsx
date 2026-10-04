@@ -10,7 +10,7 @@ import {
 export default function NotFound() {
   return (
     <SiteShell>
-      <div className="reading-column py-24">
+      <div className="mx-auto w-[calc(100%-40px)] max-w-[660px] py-24 sm:w-[calc(100%-48px)]">
         <Empty>
           <EmptyHeader>
             <EmptyTitle>This page isn&apos;t here.</EmptyTitle>

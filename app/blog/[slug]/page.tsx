@@ -45,7 +45,7 @@ export default async function Article({ params }: Props) {
   const cover = post.coverImage ? imageUrl(post.coverImage) : null
   return (
     <SiteShell>
-      <article className="reading-column">
+      <article className="mx-auto w-[calc(100%-40px)] max-w-[660px] sm:w-[calc(100%-48px)]">
         <JsonLd
           data={{
             "@context": "https://schema.org",
@@ -65,13 +65,18 @@ export default async function Article({ params }: Props) {
             image: cover || `${site.url}/opengraph-image`,
           }}
         />
-        <header className="journal-heading">
-          <Link href="/blog" className="post-date">
+        <header className="pt-13 pb-20 sm:pt-22 sm:pb-24">
+          <Link
+            href="/blog"
+            className="font-heading text-xs text-muted-foreground"
+          >
             ← Back to the journal
           </Link>
-          <h1 className="mt-8">{post.title}</h1>
-          <p>{post.summary}</p>
-          <div className="post-date mt-6">
+          <h1 className="mt-8 text-[clamp(2.2rem,5vw,3rem)] leading-[1.15] font-normal tracking-[-0.06em]">
+            {post.title}
+          </h1>
+          <p className="mt-5 text-lg leading-relaxed">{post.summary}</p>
+          <div className="mt-6 font-heading text-xs text-muted-foreground">
             <time dateTime={post.publishedAt}>
               {formatDate(post.publishedAt)}
             </time>{" "}
@@ -86,7 +91,7 @@ export default async function Article({ params }: Props) {
             height={880}
             sizes="(max-width: 700px) 100vw, 660px"
             priority
-            className="article-cover"
+            className="mb-9 h-auto w-full rounded-lg"
           />
         )}
         <ArticleBody body={post.body} />

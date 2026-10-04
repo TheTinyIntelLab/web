@@ -60,7 +60,7 @@ Keep routes in the existing root `app/` folder. `src/` holds content and CMS uti
 
 ## Edit the site
 
-Change homepage text in `src/content/home.ts`, navigation and contact links in `components/site-shell.tsx`, and layout rules in `app/globals.css`. The existing shadcn colors and radius tokens remain in that stylesheet. Interactive site controls use shadcn/ui. Sanity supplies its own editing interface.
+Change homepage text in `src/content/home.ts`, navigation and contact links in `components/site-shell.tsx`, and layout classes in the relevant `.tsx` files. The shadcn color and radius tokens, imports, and shared base reset remain in `app/globals.css`. Interactive site controls use shadcn/ui. Sanity supplies its own editing interface.
 
 The design follows the navigation, centered identity, narrow reading column, and grouped footer of [Thinking Machines Lab](https://thinkingmachines.ai/), with this lab's own logo and copy.
 

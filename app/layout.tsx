@@ -57,7 +57,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${newsreader.variable} antialiased`}
+      className={`${inter.variable} ${newsreader.variable} scroll-pt-8 scroll-smooth font-serif antialiased selection:bg-primary selection:text-primary-foreground motion-reduce:scroll-auto [&_[data-slot=badge]]:font-heading [&_[data-slot=button]]:font-heading [&_a]:underline-offset-[0.2em] [&_h1]:font-heading [&_h2]:font-heading [&_h3]:font-heading [&_h4]:font-heading [&_nav]:font-heading`}
     >
       <body>
         <ThemeProvider>{children}</ThemeProvider>
