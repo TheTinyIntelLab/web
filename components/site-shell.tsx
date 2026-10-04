@@ -1,14 +1,12 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const groups = [
   {
     title: "Research",
-    links: [
-      { label: "Opal", href: "/#opal" },
-      { label: "Philosophy", href: "/#philosophy" },
-    ],
+    links: [{ label: "Opal", href: "/#opal" }],
   },
   { title: "Writing", links: [{ label: "Notes from the lab", href: "/blog" }] },
   {
@@ -49,7 +47,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             variant="ghost"
             render={<Link href="/#philosophy" />}
           >
-            Philosophy
+            About
           </Button>
           <Button
             nativeButton={false}
@@ -93,6 +91,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         <div className="footer-bottom">
           <Link href="/">The Tiny Intelligence Lab</Link>
           <span>© {new Date().getFullYear()}</span>
+          <ThemeToggle />
         </div>
       </footer>
     </>

@@ -4,6 +4,8 @@ The lab's website, built with Next.js App Router, TypeScript, Tailwind CSS, and 
 
 The homepage has 300 words about the lab's philosophy and 100 about Opal, excluding headings and navigation. The stone logo lives in `public/logo.png`. Opal is described as research in progress.
 
+The site defaults to light mode. The footer switch saves a light or dark preference in the browser. Dark mode uses the original yellow; light mode mixes it with 20% black in OKLCH. Both modes use a subtle purple accent for navigation hover and focus. Opal has no version label, and the introductory announcement remains commented out in `app/page.tsx`.
+
 ## Run locally
 
 Use Node.js 22.12 or newer and pnpm 11.
