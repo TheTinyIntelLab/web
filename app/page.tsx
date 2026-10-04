@@ -35,7 +35,7 @@ export default function Home() {
           <br />
           intelligence lab
         </h1>
-        <Button
+        {/* <Button
           nativeButton={false}
           role="link"
           variant="ghost"
@@ -44,7 +44,7 @@ export default function Home() {
         >
           <Badge variant="secondary">IN RESEARCH</Badge> Meet Opal, our first
           model <span aria-hidden="true">↗</span>
-        </Button>
+        </Button> */}
       </section>
       <article className="reading-column home-copy" id="philosophy">
         <div className="flex flex-col gap-6">
@@ -63,7 +63,7 @@ export default function Home() {
         <section id="opal" className="copy-section opal-section">
           <div className="flex flex-wrap items-center gap-3">
             <h2>Opal</h2>
-            <Badge variant="secondary">v1 · in research</Badge>
+            <Badge variant="secondary">in research</Badge>
           </div>
           {opal.map((text) => (
             <p key={text}>{text}</p>
