@@ -1,19 +1,83 @@
+import Image from "next/image"
+import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { SiteShell } from "@/components/site-shell"
+import { philosophy, opal } from "@/src/content/home"
+import { site } from "@/src/lib/site"
+import { JsonLd } from "@/components/json-ld"
 
-export default function Page() {
+export const metadata = { alternates: { canonical: "/" } }
+export default function Home() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
+    <SiteShell>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ResearchOrganization",
+          name: site.name,
+          url: site.url,
+          logo: `${site.url}/logo.png`,
+          description: site.description,
+        }}
+      />
+      <section className="identity" aria-labelledby="lab-name">
+        <Image
+          src="/logo.png"
+          alt="A faceted stone with a warm amber center"
+          width={512}
+          height={512}
+          priority
+          className="lab-stone"
+        />
+        <h1 id="lab-name">
+          the tiny
+          <br />
+          intelligence lab
+        </h1>
+        <Button
+          nativeButton={false}
+          role="link"
+          variant="ghost"
+          render={<Link href="#opal" />}
+          className="project-link"
+        >
+          <Badge variant="secondary">IN RESEARCH</Badge> Meet Opal, our first
+          model <span aria-hidden="true">↗</span>
+        </Button>
+      </section>
+      <article className="reading-column home-copy" id="philosophy">
+        <div className="flex flex-col gap-6">
+          {philosophy.introduction.map((text) => (
+            <p key={text}>{text}</p>
+          ))}
         </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
-    </div>
+        {philosophy.sections.map((section) => (
+          <section key={section.title} className="copy-section">
+            <h2>{section.title}</h2>
+            {section.paragraphs.map((text) => (
+              <p key={text}>{text}</p>
+            ))}
+          </section>
+        ))}
+        <section id="opal" className="copy-section opal-section">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2>Opal</h2>
+            <Badge variant="secondary">v1 · in research</Badge>
+          </div>
+          {opal.map((text) => (
+            <p key={text}>{text}</p>
+          ))}
+          <Button
+            nativeButton={false}
+            role="link"
+            variant="outline"
+            render={<Link href="/blog" />}
+          >
+            Notes from the lab <span aria-hidden="true">↗</span>
+          </Button>
+        </section>
+      </article>
+    </SiteShell>
   )
 }
