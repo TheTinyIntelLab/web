@@ -3,11 +3,33 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SiteShell } from "@/components/site-shell"
-import { philosophy, opal } from "@/src/content/home"
+import {
+  about,
+  opal,
+  thesis,
+  stoneNote,
+  importantSentences,
+} from "@/src/content/home"
 import { site } from "@/src/lib/site"
 import { JsonLd } from "@/components/json-ld"
 
 export const metadata = { alternates: { canonical: "/" } }
+
+function CopyParagraph({ text }: { text: string }) {
+  const sentence = importantSentences.find((sentence) =>
+    text.includes(sentence)
+  )
+  if (!sentence) return <p>{text}</p>
+  const position = text.indexOf(sentence)
+  return (
+    <p>
+      {text.slice(0, position)}
+      <em>{sentence}</em>
+      {text.slice(position + sentence.length)}
+    </p>
+  )
+}
+
 export default function Home() {
   return (
     <SiteShell>
@@ -35,6 +57,7 @@ export default function Home() {
           <br />
           intelligence lab
         </h1>
+        <p className="lab-thesis">{thesis}</p>
         {/* <Button
           nativeButton={false}
           role="link"
@@ -46,20 +69,21 @@ export default function Home() {
           model <span aria-hidden="true">↗</span>
         </Button> */}
       </section>
-      <article className="reading-column home-copy" id="philosophy">
+      <article className="reading-column home-copy" id="about">
         <div className="flex flex-col gap-6">
-          {philosophy.introduction.map((text) => (
-            <p key={text}>{text}</p>
+          {about.introduction.map((text) => (
+            <CopyParagraph key={text} text={text} />
           ))}
         </div>
-        {philosophy.sections.map((section) => (
+        {about.sections.map((section) => (
           <section key={section.title} className="copy-section">
             <h2>{section.title}</h2>
             {section.paragraphs.map((text) => (
-              <p key={text}>{text}</p>
+              <CopyParagraph key={text} text={text} />
             ))}
           </section>
         ))}
+        <p className="stone-note">{stoneNote}</p>
         <section id="opal" className="copy-section opal-section">
           <div className="flex flex-wrap items-center gap-3">
             <h2>Opal</h2>

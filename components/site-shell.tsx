@@ -12,7 +12,7 @@ const groups = [
   {
     title: "The lab",
     links: [
-      { label: "About", href: "/#philosophy" },
+      { label: "About", href: "/#about" },
       { label: "Email", href: "mailto:thetinyintelligenceproject@gmail.com" },
     ],
   },
@@ -45,7 +45,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             nativeButton={false}
             role="link"
             variant="ghost"
-            render={<Link href="/#philosophy" />}
+            render={<Link href="/#about" />}
           >
             About
           </Button>
