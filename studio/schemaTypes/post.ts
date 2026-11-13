@@ -56,10 +56,28 @@ export const post = defineType({
       ],
     }),
     defineField({
-      name: "body",
+      name: "markdown",
       title: "Article",
+      type: "text",
+      rows: 30,
+      description:
+        "Write or paste Markdown. Supports headings, links, images, lists, tables, and fenced code blocks.",
+      validation: (r) =>
+        r.custom((value, context) =>
+          value?.trim() ||
+          (Array.isArray(context.document?.body) &&
+            context.document.body.length)
+            ? true
+            : "Add the article in Markdown."
+        ),
+    }),
+    defineField({
+      name: "body",
+      title: "Previous article (read only)",
+      deprecated: { reason: "Use the Article Markdown field instead." },
+      readOnly: true,
+      hidden: ({ value, document }) => !value || Boolean(document?.markdown),
       type: "array",
-      validation: (r) => r.required().min(1),
       of: [
         {
           type: "block",
