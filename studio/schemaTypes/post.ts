@@ -63,81 +63,11 @@ export const post = defineType({
       description:
         "Write or paste Markdown. Supports headings, links, images, lists, tables, and fenced code blocks.",
       validation: (r) =>
-        r.custom((value, context) =>
-          value?.trim() ||
-          (Array.isArray(context.document?.body) &&
-            context.document.body.length)
-            ? true
-            : "Add the article in Markdown."
-        ),
-    }),
-    defineField({
-      name: "body",
-      title: "Previous article (read only)",
-      deprecated: { reason: "Use the Article Markdown field instead." },
-      readOnly: true,
-      hidden: ({ value, document }) => !value || Boolean(document?.markdown),
-      type: "array",
-      of: [
-        {
-          type: "block",
-          styles: [
-            { title: "Paragraph", value: "normal" },
-            { title: "Heading", value: "h2" },
-            { title: "Subheading", value: "h3" },
-            { title: "Quote", value: "blockquote" },
-          ],
-          marks: {
-            decorators: [
-              { title: "Bold", value: "strong" },
-              { title: "Italic", value: "em" },
-              { title: "Code", value: "code" },
-            ],
-            annotations: [
-              {
-                name: "link",
-                title: "Link",
-                type: "object",
-                fields: [
-                  {
-                    name: "href",
-                    title: "URL",
-                    type: "url",
-                    validation: (r) =>
-                      r.required().uri({ scheme: ["http", "https", "mailto"] }),
-                  },
-                ],
-              },
-            ],
-          },
-        },
-        {
-          type: "image",
-          options: { hotspot: true },
-          fields: [
-            defineField({
-              name: "alt",
-              title: "Alternative text",
-              type: "string",
-              validation: (r) => r.required(),
-            }),
-            defineField({ name: "caption", title: "Caption", type: "string" }),
-          ],
-        },
-        {
-          type: "object",
-          name: "codeBlock",
-          title: "Code",
-          fields: [
-            {
-              name: "code",
-              title: "Code",
-              type: "text",
-              validation: (r) => r.required(),
-            },
-          ],
-        },
-      ],
+        r
+          .required()
+          .custom((value) =>
+            value?.trim() ? true : "Add the article in Markdown."
+          ),
     }),
   ],
   orderings: [

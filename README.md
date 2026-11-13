@@ -44,5 +44,3 @@ Keep `.env.local` on your machine. Git ignores it.
 ## Writing articles
 
 In `/studio`, write or paste Markdown into the Article text area. The blog renders headings, emphasis, links, images, lists, quotes, fenced code blocks, tables, and task lists. Raw HTML is ignored.
-
-Existing articles still render their previous rich text until Markdown is added. Their old content remains available in the read-only Previous article field. Adding Markdown makes it the published article body without deleting the original content.

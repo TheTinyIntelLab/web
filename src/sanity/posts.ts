@@ -1,7 +1,6 @@
 import "server-only"
 import { cache } from "react"
 import { defineQuery } from "next-sanity"
-import type { PortableTextBlock } from "@portabletext/types"
 import type { SanityImageSource } from "@sanity/image-url"
 import { client } from "./client"
 export type Post = {
@@ -12,8 +11,7 @@ export type Post = {
   summary: string
   publishedAt: string
   coverImage?: SanityImageSource & { alt: string }
-  markdown?: string
-  body?: PortableTextBlock[]
+  markdown: string
 }
 const postsQuery =
   defineQuery(`*[_type == "post" && defined(slug.current) && publishedAt <= now()] | order(publishedAt desc) {
@@ -21,7 +19,7 @@ const postsQuery =
 }`)
 const postQuery =
   defineQuery(`*[_type == "post" && slug.current == $slug && publishedAt <= now()][0] {
-  _id, _updatedAt, title, "slug": slug.current, summary, publishedAt, coverImage, markdown, body
+  _id, _updatedAt, title, "slug": slug.current, summary, publishedAt, coverImage, markdown
 }`)
 export const getPosts = cache(async (): Promise<Post[]> => {
   if (!client) return []
