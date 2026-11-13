@@ -79,8 +79,7 @@ export default async function Article({ params }: Props) {
           <div className="mt-6 font-heading text-xs text-muted-foreground">
             <time dateTime={post.publishedAt}>
               {formatDate(post.publishedAt)}
-            </time>{" "}
-            · The Tiny Intelligence Lab
+            </time>
           </div>
         </header>
         {cover && (
