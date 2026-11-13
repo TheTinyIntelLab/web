@@ -1,36 +1,34 @@
 export const thesis = "Small models for science, built around the problem."
 export const about = {
   introduction: [
-    "The Tiny Intelligence Lab is an independent, one-person research lab. We build models to answer questions in science. We ask whether understanding a problem can help a model learn it better. Our first project, Opal, studies what happens when two changes are made to a cell at once.",
-    "A scientific problem often gives us a head start. Sometimes we know that swapping two inputs should give the same answer. Sometimes a simple calculation already gets us part of the way. We build those facts into a model and test whether they actually help.",
+    "The Tiny Intelligence Lab is an independent, one-person research lab building models for scientific problems. Our first project, Opal, studies how cells respond when two biological changes happen together, using measurements of each change on its own.",
+    "We're interested in what a model shouldn't have to learn from scratch. If swapping two inputs leaves the answer unchanged, the model should respect that. If a simple calculation explains part of the result, we can start there and learn what's left. We test whether building this knowledge into a model helps it learn better.",
   ],
   sections: [
     {
       title: "Small enough for the job",
       paragraphs: [
-        "Tiny means using what the problem needs. We choose a smaller model when it gives good answers with less compute. A bigger model earns its place when it works better. We check accuracy, memory use, and how long each prediction takes.",
-        "We count the whole system. That includes stored data and other models it uses. A small part doesn't make the whole model small.",
+        "Small models are useful when they make the work easier to run. We compare accuracy with memory use and prediction time, and use larger models when the improvement is worth the extra compute.",
+        "That comparison includes any stored data or other models needed to make a prediction. Calling one part small tells you little about what you'll need to run it.",
       ],
     },
     {
-      title: "Open source models, usable research",
+      title: "Research you can check",
       paragraphs: [
-        "We plan to release open source code and trained models. Each release will have a clear license and steps to repeat the experiments. You should be able to run the work and check our claims.",
-        "A demo lets you try a model, but it doesn't prove that the model works well. We compare it with simpler methods. We test our design choices and share the results, including the ones that disappoint us.",
-        "We'll explain what each model can take as input, where it struggles, and how it runs on a CPU. You can then decide whether it's useful for your work.",
+        "We plan to release open source code and trained models, with clear licenses and instructions for repeating the experiments. You should be able to check our claims yourself, including whether our design choices improve on simpler methods.",
+        "We'll publish results that don't work out, too. For each model, we'll describe the inputs it needs, the cases it struggles with, and what it takes to run on a CPU. A demo can help you try it, but the experiments need to show whether it works.",
       ],
     },
   ],
 }
-export const stoneNote =
-  "Our models are named after stones. Small things can have a lot of structure."
+export const stoneNote = "We name our models after stones."
 export const importantSentences = [
-  "A scientific problem often gives us a head start.",
-  "We count the whole system.",
-  "You should be able to run the work and check our claims.",
+  "We're interested in what a model shouldn't have to learn from scratch.",
+  "That comparison includes any stored data or other models needed to make a prediction.",
+  "You should be able to check our claims yourself, including whether our design choices improve on simpler methods.",
 ]
 export const opal = [
-  "Opal studies how a cell responds to two changes at once. It predicts average gene activity for a pair of changes, using measurements of each change on its own. Those measurements must come from the same biological setting.",
-  "It starts by adding the two effects. Then it learns a correction for how they work together. Swapping the inputs gives the same prediction. We'll test it against simple addition and models that predict the combined effect directly.",
-  "Opal is in research. We plan to share the experiments, trained models, and a demo. Other cell types and settings will need separate tests.",
+  "Opal predicts average gene activity when two changes are made to a cell together. It uses measurements of each change on its own, taken in the same biological setting.",
+  "The model adds the two individual effects, then learns a correction for how they interact. Swapping the inputs gives the same prediction. We'll compare it with simple addition and with models that predict the combined effect directly, to see whether learning a correction helps.",
+  "Opal is still in research. We plan to release the experiments and trained models alongside a demo. Results in one biological setting won't establish how it performs in other cell types or conditions; those need their own tests.",
 ]
