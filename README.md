@@ -40,3 +40,9 @@ NEXT_PUBLIC_SANITY_DATASET=production
 To use the blog, choose a public dataset in [Sanity Manage](https://www.sanity.io/manage). Add `http://localhost:3000` to the project's allowed origins under CORS settings and enable credentials. Restart the app after changing the variables, then open [/studio](http://localhost:3000/studio) and sign in to edit articles.
 
 Keep `.env.local` on your machine. Git ignores it.
+
+## Writing articles
+
+In `/studio`, write or paste Markdown into the Article text area. The blog renders headings, emphasis, links, images, lists, quotes, fenced code blocks, tables, and task lists. Raw HTML is ignored.
+
+Existing articles still render their previous rich text until Markdown is added. Their old content remains available in the read-only Previous article field. Adding Markdown makes it the published article body without deleting the original content.
