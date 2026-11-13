@@ -121,7 +121,7 @@ export default function Home() {
             className="mt-1 self-start"
             render={<Link href="/blog" />}
           >
-            Notes from the lab <span aria-hidden="true">↗</span>
+            Read the blog <span aria-hidden="true">↗</span>
           </Button>
         </section>
       </article>

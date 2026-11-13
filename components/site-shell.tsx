@@ -9,7 +9,7 @@ const groups = [
     title: "Research",
     links: [{ label: "Opal", href: "/#opal" }],
   },
-  { title: "Writing", links: [{ label: "Notes from the lab", href: "/blog" }] },
+  { title: "Updates", links: [{ label: "Blog", href: "/blog" }] },
   {
     title: "The lab",
     links: [
@@ -89,7 +89,7 @@ export function SiteShell({
             variant="ghost"
             render={<Link href="/blog" />}
           >
-            Journal
+            Blog
           </Button>
         </nav>
       </header>

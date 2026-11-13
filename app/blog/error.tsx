@@ -13,7 +13,7 @@ export default function BlogError({ reset }: { reset: () => void }) {
       <div className="mx-auto w-[calc(100%-40px)] max-w-[660px] py-24 sm:w-[calc(100%-48px)]">
         <Empty>
           <EmptyHeader>
-            <EmptyTitle>The journal couldn&apos;t load.</EmptyTitle>
+            <EmptyTitle>The blog couldn&apos;t load.</EmptyTitle>
             <EmptyDescription>Please try again in a moment.</EmptyDescription>
           </EmptyHeader>
           <Button variant="outline" onClick={reset}>

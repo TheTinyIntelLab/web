@@ -70,7 +70,7 @@ export default async function Article({ params }: Props) {
             href="/blog"
             className="font-heading text-xs text-muted-foreground"
           >
-            ← Back to the journal
+            ← Back to the blog
           </Link>
           <h1 className="mt-8 text-[clamp(2.2rem,5vw,3rem)] leading-[1.15] font-normal tracking-[-0.06em]">
             {post.title}

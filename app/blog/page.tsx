@@ -10,21 +10,21 @@ import {
 } from "@/components/ui/empty"
 import { getPosts, formatDate } from "@/src/sanity/posts"
 export const metadata: Metadata = {
-  title: "Journal",
+  title: "Blog & announcements",
   description:
-    "Research notes, experiments, and updates from The Tiny Intelligence Lab.",
+    "Research, model releases, and announcements from The Tiny Intelligence Lab.",
   alternates: { canonical: "/blog" },
   twitter: {
     card: "summary_large_image",
-    title: "Journal",
+    title: "Blog & announcements",
     description:
-      "Research notes, experiments, and updates from The Tiny Intelligence Lab.",
+      "Research, model releases, and announcements from The Tiny Intelligence Lab.",
     images: ["/opengraph-image"],
   },
   openGraph: {
-    title: "Journal",
+    title: "Blog & announcements",
     description:
-      "Research notes, experiments, and updates from The Tiny Intelligence Lab.",
+      "Research, model releases, and announcements from The Tiny Intelligence Lab.",
     url: "/blog",
   },
 }
@@ -39,10 +39,10 @@ export default async function Blog() {
             The Tiny Intelligence Lab
           </Link>
           <h1 className="mt-6 text-[clamp(2.2rem,5vw,3rem)] leading-[1.15] font-normal tracking-[-0.06em]">
-            Notes from the lab
+            Blog &amp; announcements
           </h1>
           <p className="mt-5 text-lg leading-relaxed">
-            Experiments, results, and notes on what we learn.
+            Research, model releases, and announcements from the lab.
           </p>
         </header>
         {posts.length ? (
@@ -69,9 +69,9 @@ export default async function Blog() {
         ) : (
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>Our first notes are on the way.</EmptyTitle>
+              <EmptyTitle>No posts yet.</EmptyTitle>
               <EmptyDescription>
-                We&apos;ll share our work here. For now, you can read about
+                Research and announcements will appear here. For now, read about
                 Opal.
               </EmptyDescription>
             </EmptyHeader>
