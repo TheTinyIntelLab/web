@@ -12,7 +12,8 @@ export type Post = {
   summary: string
   publishedAt: string
   coverImage?: SanityImageSource & { alt: string }
-  body: PortableTextBlock[]
+  markdown?: string
+  body?: PortableTextBlock[]
 }
 const postsQuery =
   defineQuery(`*[_type == "post" && defined(slug.current) && publishedAt <= now()] | order(publishedAt desc) {
@@ -20,7 +21,7 @@ const postsQuery =
 }`)
 const postQuery =
   defineQuery(`*[_type == "post" && slug.current == $slug && publishedAt <= now()][0] {
-  _id, _updatedAt, title, "slug": slug.current, summary, publishedAt, coverImage, body
+  _id, _updatedAt, title, "slug": slug.current, summary, publishedAt, coverImage, markdown, body
 }`)
 export const getPosts = cache(async (): Promise<Post[]> => {
   if (!client) return []

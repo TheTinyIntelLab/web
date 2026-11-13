@@ -94,7 +94,7 @@ export default async function Article({ params }: Props) {
             className="mb-9 h-auto w-full rounded-lg"
           />
         )}
-        <ArticleBody body={post.body} />
+        <ArticleBody body={post.markdown || post.body || ""} />
       </article>
     </SiteShell>
   )
