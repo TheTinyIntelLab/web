@@ -88,9 +88,9 @@ export default async function Article({ params }: Props) {
             alt={post.coverImage!.alt}
             width={1320}
             height={880}
-            sizes="(max-width: 898px) calc(100vw - 40px), 858px"
+            sizes="(max-width: 1030px) calc(100vw - 40px), 990px"
             priority
-            className="relative left-1/2 mb-9 h-auto w-[min(130%,calc(100vw-40px))] max-w-none -translate-x-1/2 rounded-lg"
+            className="relative left-1/2 mb-9 h-auto w-[min(150%,calc(100vw-40px))] max-w-none -translate-x-1/2 rounded-lg"
           />
         )}
         <ArticleBody body={post.markdown} />
