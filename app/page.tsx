@@ -68,16 +68,16 @@ export default function Home() {
             {thesis}
           </p>
         </div>
-        {/* <Button
+        <Button
           nativeButton={false}
           role="link"
           variant="ghost"
           render={<Link href="#opal" />}
           className="mt-7"
         >
-          <Badge variant="secondary">IN RESEARCH</Badge> Meet Opal, our first
-          model <span aria-hidden="true">↗</span>
-        </Button> */}
+          <Badge variant="secondary">v1 released</Badge> Meet Opal
+          <span aria-hidden="true">↗</span>
+        </Button>
       </section>
       <article
         className="mx-auto w-[calc(100%-40px)] max-w-[660px] text-[17px] leading-relaxed sm:w-[calc(100%-48px)] sm:text-lg"
@@ -109,7 +109,7 @@ export default function Home() {
             <h2 className="text-lg leading-snug font-medium tracking-tight">
               Opal
             </h2>
-            <Badge variant="secondary">in research</Badge>
+            <Badge variant="secondary">v1 released</Badge>
           </div>
           {opal.map((text) => (
             <p key={text}>{text}</p>

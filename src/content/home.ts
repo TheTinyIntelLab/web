@@ -1,7 +1,7 @@
 export const thesis = "Small models for science, built around the problem."
 export const about = {
   introduction: [
-    "The Tiny Intelligence Lab is an independent, one-person research lab building models for scientific problems. Our first project, Opal, studies how cells respond when two biological changes happen together, using measurements of each change on its own.",
+    "The Tiny Intelligence Lab is an independent, one-person research lab building models for scientific problems. We've released Opal v1, our first model. It predicts how cells respond when two biological changes happen together, using measurements of each change on its own.",
     "We're interested in what a model shouldn't have to learn from scratch. If swapping two inputs leaves the answer unchanged, the model should respect that. If a simple calculation explains part of the result, we can start there and learn what's left. We test whether building this knowledge into a model helps it learn better.",
   ],
   sections: [
@@ -28,7 +28,7 @@ export const importantSentences = [
   "You should be able to check our claims yourself, including whether our design choices improve on simpler methods.",
 ]
 export const opal = [
-  "Opal predicts average gene activity when two changes are made to a cell together. It uses measurements of each change on its own, taken in the same biological setting.",
-  "The model adds the two individual effects, then learns a correction for how they interact. Swapping the inputs gives the same prediction. We'll compare it with simple addition and with models that predict the combined effect directly, to see whether learning a correction helps.",
-  "Opal is still in research. We plan to release the experiments and trained models alongside a demo. Results in one biological setting won't establish how it performs in other cell types or conditions; those need their own tests.",
+  "Opal v1 is complete and released. It predicts average gene activity when two changes are made to a cell together, using measurements of each change on its own, taken in the same biological setting.",
+  "The model adds the two individual effects, then learns a correction for how they interact. Swapping the inputs gives the same prediction.",
+  "Results in one biological setting don't establish how Opal performs in other cell types or conditions; those need their own tests.",
 ]

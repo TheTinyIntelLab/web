@@ -11,6 +11,6 @@ if (!["http:", "https:"].includes(parsedUrl.protocol))
 export const site = {
   name: "The Tiny Intelligence Lab",
   description:
-    "An independent research lab studying how the structure of a scientific problem can help models learn. Meet Opal, our first model for biological interventions.",
+    "Opal v1 is released. Meet our first model for biological interventions, from an independent research lab building small models for science.",
   url: parsedUrl.origin,
 }
