@@ -44,3 +44,9 @@ Keep `.env.local` on your machine. Git ignores it.
 ## Writing articles
 
 In `/studio`, write or paste Markdown into the Article text area. The blog renders headings, emphasis, links, images, lists, quotes, fenced code blocks, tables, and task lists. Raw HTML is ignored.
+
+## Interface icons
+
+Use Hugeicons Stroke Rounded from `@hugeicons/core-free-icons`, rendered with `HugeiconsIcon` from `@hugeicons/react`. Keep a 1.5px stroke and inherit the text color. Standalone icons use 20px; icons inside buttons follow the button's sizing and use `data-icon="inline-start"` or `data-icon="inline-end"` for spacing. Hide decorative icons from screen readers with `aria-hidden="true"` and give icon-only controls an accessible label. The stone artwork remains the lab's logo.
+
+`components.json` configures shadcn to use Hugeicons for newly added components.

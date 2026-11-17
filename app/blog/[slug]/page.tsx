@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons"
 import { notFound } from "next/navigation"
 import { SiteShell } from "@/components/site-shell"
 import { ArticleBody } from "@/components/article-body"
@@ -68,9 +70,15 @@ export default async function Article({ params }: Props) {
         <header className="pt-13 pb-20 sm:pt-22 sm:pb-24">
           <Link
             href="/blog"
-            className="font-heading text-xs text-muted-foreground"
+            className="inline-flex items-center gap-1.5 font-heading text-xs text-muted-foreground"
           >
-            ← Back to the blog
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={20}
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+            Back to the blog
           </Link>
           <h1 className="mt-8 text-[clamp(2.2rem,5vw,3rem)] leading-[1.15] font-normal tracking-[-0.06em]">
             {post.title}

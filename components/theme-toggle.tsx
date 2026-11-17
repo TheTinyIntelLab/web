@@ -1,7 +1,8 @@
 "use client"
 import { useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
-import { IconMoon, IconSun } from "@tabler/icons-react"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
 
 const subscribe = () => () => {}
@@ -21,11 +22,12 @@ export function ThemeToggle() {
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       onClick={() => setTheme(dark ? "light" : "dark")}
     >
-      {dark ? (
-        <IconSun data-icon="inline-start" />
-      ) : (
-        <IconMoon data-icon="inline-start" />
-      )}
+      <HugeiconsIcon
+        icon={dark ? Sun03Icon : Moon02Icon}
+        strokeWidth={1.5}
+        aria-hidden="true"
+        data-icon="inline-start"
+      />
       {dark ? "Light mode" : "Dark mode"}
     </Button>
   )

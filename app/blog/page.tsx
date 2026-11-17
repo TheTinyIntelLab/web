@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons"
 import { SiteShell } from "@/components/site-shell"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -60,7 +62,14 @@ export default async function Blog() {
                   {formatDate(post.publishedAt)}
                 </time>
                 <h2 className="text-lg font-medium tracking-tight group-hover:underline">
-                  {post.title} <span aria-hidden="true">↗</span>
+                  {post.title}{" "}
+                  <HugeiconsIcon
+                    icon={ArrowUpRight01Icon}
+                    size={20}
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                    className="inline-block align-text-bottom"
+                  />
                 </h2>
                 <p className="text-lg leading-relaxed">{post.summary}</p>
               </Link>

@@ -1,5 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SiteShell } from "@/components/site-shell"
@@ -76,7 +78,12 @@ export default function Home() {
           className="mt-7"
         >
           <Badge variant="secondary">v1 released</Badge> Meet Opal
-          <span aria-hidden="true">↗</span>
+          <HugeiconsIcon
+            icon={ArrowUpRight01Icon}
+            strokeWidth={1.5}
+            aria-hidden="true"
+            data-icon="inline-end"
+          />
         </Button>
       </section>
       <article
@@ -121,7 +128,13 @@ export default function Home() {
             className="mt-1 self-start"
             render={<Link href="/blog" />}
           >
-            Read the blog <span aria-hidden="true">↗</span>
+            Read the blog
+            <HugeiconsIcon
+              icon={ArrowUpRight01Icon}
+              strokeWidth={1.5}
+              aria-hidden="true"
+              data-icon="inline-end"
+            />
           </Button>
         </section>
       </article>
