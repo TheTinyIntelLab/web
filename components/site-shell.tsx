@@ -3,6 +3,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { site } from "@/src/lib/site"
 
 const groups = [
   {
@@ -20,8 +21,8 @@ const groups = [
   {
     title: "Elsewhere",
     links: [
-      { label: "GitHub", href: "https://github.com/TheTinyIntelLab" },
-      { label: "X", href: "https://x.com/TheTinyIntelLab" },
+      { label: "GitHub", href: site.profiles.github },
+      { label: "X", href: site.profiles.x },
     ],
   },
 ]

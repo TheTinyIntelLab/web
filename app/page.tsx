@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -12,10 +13,21 @@ import {
   stoneNote,
   importantSentences,
 } from "@/src/content/home"
-import { site } from "@/src/lib/site"
+import { labOrganization, site } from "@/src/lib/site"
 import { JsonLd } from "@/components/json-ld"
 
-export const metadata = { alternates: { canonical: "/" } }
+export const metadata: Metadata = {
+  alternates: { canonical: site.url },
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    title: site.title,
+    description: site.description,
+    url: site.url,
+  },
+  twitter: { card: "summary_large_image" },
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
+}
 
 function CopyParagraph({ text }: { text: string }) {
   const sentence = importantSentences.find((sentence) =>
@@ -38,11 +50,22 @@ export default function Home() {
       <JsonLd
         data={{
           "@context": "https://schema.org",
-          "@type": "ResearchOrganization",
-          name: site.name,
-          url: site.url,
-          logo: `${site.url}/logo.png`,
-          description: site.description,
+          "@graph": [
+            {
+              "@type": "WebSite",
+              "@id": `${site.url}#website`,
+              name: site.name,
+              url: site.url,
+              publisher: { "@id": labOrganization["@id"] },
+              inLanguage: "en",
+            },
+            {
+              ...labOrganization,
+              logo: site.logo,
+              description: site.description,
+              sameAs: Object.values(site.profiles),
+            },
+          ],
         }}
       />
       <section
@@ -60,11 +83,10 @@ export default function Home() {
         <div className="w-min max-w-full">
           <h1
             id="lab-name"
-            className="-mt-3 text-[clamp(2.3rem,5vw,3.4rem)] leading-[1.15] font-normal tracking-[-0.065em] whitespace-nowrap"
+            className="-mt-3 text-[clamp(2.3rem,5vw,3.4rem)] leading-[1.15] font-normal tracking-[-0.065em] whitespace-nowrap lowercase"
           >
-            the tiny
-            <br />
-            intelligence lab
+            The Tiny{" "}
+            <span className="block">Intelligence Lab</span>
           </h1>
           <p className="mt-6 w-full text-lg leading-[1.45] text-balance">
             {thesis}
@@ -91,6 +113,9 @@ export default function Home() {
         id="about"
       >
         <div className="flex flex-col gap-6">
+          <h2 className="text-lg leading-snug font-medium tracking-tight">
+            About the lab
+          </h2>
           {about.introduction.map((text) => (
             <CopyParagraph key={text} text={text} />
           ))}
