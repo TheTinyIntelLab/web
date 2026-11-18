@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     title: site.title,
     description: site.description,
     url: site.url,
+    images: [site.socialImage],
   },
   twitter: { card: "summary_large_image" },
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION },

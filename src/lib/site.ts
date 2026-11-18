@@ -27,10 +27,11 @@ export const site = {
     origin.hostname !== "localhost",
   logo: new URL("/logo.png", url).href,
   socialImage: {
-    url: "/opengraph-image",
-    width: 1200,
-    height: 630,
-    alt: name,
+    url: "/og.png",
+    width: 1600,
+    height: 900,
+    type: "image/png",
+    alt: `${name}. Small models for science, built around the problem.`,
   },
   profiles: {
     github: "https://github.com/TheTinyIntelLab",
