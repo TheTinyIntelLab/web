@@ -1,16 +1,46 @@
-let parsedUrl: URL
-try {
-  parsedUrl = new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-  )
-} catch {
-  throw new Error("NEXT_PUBLIC_SITE_URL must be a valid absolute URL")
+const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL
+const origin = URL.parse(
+  process.env.NEXT_PUBLIC_SITE_URL ||
+    (productionHost ? `https://${productionHost}` : "http://localhost:3000")
+)
+
+if (
+  !origin ||
+  !["http:", "https:"].includes(origin.protocol) ||
+  origin.href !== `${origin.origin}/`
+) {
+  throw new Error("NEXT_PUBLIC_SITE_URL must be an HTTP(S) origin")
 }
-if (!["http:", "https:"].includes(parsedUrl.protocol))
-  throw new Error("NEXT_PUBLIC_SITE_URL must be an http or https URL")
+
+const name = "The Tiny Intelligence Lab"
+const url = `${origin.origin}/`
 export const site = {
-  name: "The Tiny Intelligence Lab",
+  name,
+  title: `${name} | Small models for science`,
   description:
-    "Opal v1 is released. Meet our first model for biological interventions, from an independent research lab building small models for science.",
-  url: parsedUrl.origin,
+    "The Tiny Intelligence Lab is an independent research lab building small models for science. Read about our research and releases, including Opal v1.",
+  url,
+  indexable:
+    process.env.NODE_ENV === "production" &&
+    (!process.env.VERCEL_ENV || process.env.VERCEL_ENV === "production") &&
+    origin.protocol === "https:" &&
+    origin.hostname !== "localhost",
+  logo: new URL("/logo.png", url).href,
+  socialImage: {
+    url: "/opengraph-image",
+    width: 1200,
+    height: 630,
+    alt: name,
+  },
+  profiles: {
+    github: "https://github.com/TheTinyIntelLab",
+    x: "https://x.com/TheTinyIntelLab",
+  },
+}
+
+export const labOrganization = {
+  "@type": "ResearchOrganization",
+  "@id": `${site.url}#organization`,
+  name: site.name,
+  url: site.url,
 }

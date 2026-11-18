@@ -29,6 +29,13 @@ export const getPost = cache(async (slug: string): Promise<Post | null> => {
   if (!client) return null
   return client.fetch(postQuery, { slug }, { next: { revalidate: 60 } })
 })
+
+export function postModificationDate(post: Post) {
+  return Date.parse(post._updatedAt) > Date.parse(post.publishedAt)
+    ? post._updatedAt
+    : undefined
+}
+
 const dateFormatter = new Intl.DateTimeFormat("en", {
   dateStyle: "long",
   timeZone: "UTC",
