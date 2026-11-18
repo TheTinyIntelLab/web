@@ -2,6 +2,8 @@
 
 The Tiny Intelligence Lab is an independent, one-person research lab. We build models for scientific problems and test whether understanding a problem's structure helps them learn better.
 
+Read [research and announcements on The Tiny Intelligence Lab website](https://thetinyintelligencelab.vercel.app/).
+
 "Tiny" means using what the problem needs. We choose smaller models when they work well with less compute. Bigger models need to earn their place. We plan to share open source code, trained models, and experiments that others can repeat.
 
 Our first project is Opal. It studies how cells respond to two biological changes at once, using measurements of each change on its own. Opal is still in research.
@@ -34,12 +36,21 @@ NEXT_PUBLIC_SANITY_DATASET=production
 ```
 
 - `NEXT_PUBLIC_SITE_URL` is the website's address. Use localhost while developing and your real domain when the site is online.
+- `GOOGLE_SITE_VERIFICATION` is optional. For Search Console HTML tag verification, set it to the value of the tag's `content` attribute and redeploy.
 - `NEXT_PUBLIC_SANITY_PROJECT_ID` connects the blog to your Sanity project. Leave it blank to run the site without blog content.
 - `NEXT_PUBLIC_SANITY_DATASET` names the collection of content in Sanity. It defaults to `production`.
 
 To use the blog, choose a public dataset in [Sanity Manage](https://www.sanity.io/manage). Add `http://localhost:3000` to the project's allowed origins under CORS settings and enable credentials. Restart the app after changing the variables, then open [/studio](http://localhost:3000/studio) and sign in to edit articles.
 
 Keep `.env.local` on your machine. Git ignores it.
+
+## Search indexing
+
+Set `NEXT_PUBLIC_SITE_URL` to the public HTTPS origin on the production deployment. It controls canonical URLs, structured data, and the sitemap. When the variable is unset on Vercel, the app uses the project's production domain. Local development and Vercel previews send `noindex`.
+
+In [Google Search Console](https://search.google.com/search-console), verify the current site's URL-prefix property, submit `sitemap.xml`, and request indexing for the homepage through URL Inspection. Use the same inspection to check Google's selected canonical and indexing status after it crawls the page. Check that the property is included in Search generative AI features, if that setting is available. [Google's AI search guide](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide)
+
+When the new domain is ready, verify it in Search Console and update `NEXT_PUBLIC_SITE_URL` on the production deployment. Set permanent redirects from the old host to the matching paths on the new host, test the homepage and article redirects, and submit the new sitemap. Use Search Console's Change of Address tool if the properties are eligible. Keep the old redirects active for at least a year. [Google's site move guide](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes)
 
 ## Writing articles
 
