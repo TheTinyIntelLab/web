@@ -77,7 +77,8 @@ export default function Home() {
           alt="A faceted stone with a warm amber center"
           width={512}
           height={512}
-          priority
+          sizes="(min-width: 640px) 210px, 180px"
+          preload
           className="size-[180px] object-contain [clip-path:polygon(50%_32%,65%_41%,65%_58%,50%_68%,35%_58%,35%_41%)] sm:size-[210px]"
         />
         <div className="w-min max-w-full">
