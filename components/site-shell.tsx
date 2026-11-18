@@ -39,11 +39,9 @@ export function SiteShell({
         nativeButton={false}
         role="link"
         variant="outline"
-        render={<a href="#main-content" />}
+        render={<a href="#main-content">Skip to content</a>}
         className="fixed -top-24 left-4 z-50 focus:top-4"
-      >
-        Skip to content
-      </Button>
+      />
       <header className="flex items-center justify-between gap-3 px-3 py-2.5 sm:px-7 sm:py-3">
         {!home && (
           <Button
@@ -94,7 +92,9 @@ export function SiteShell({
           </Button>
         </nav>
       </header>
-      <main id="main-content">{children}</main>
+      <main id="main-content" tabIndex={-1}>
+        {children}
+      </main>
       <footer className="mx-auto mt-18 max-w-[1100px] px-2 pb-7 sm:mt-25 sm:px-7">
         <Separator />
         <div className="grid grid-cols-2 gap-3 pt-9 pb-12 sm:grid-cols-4 sm:gap-8">
