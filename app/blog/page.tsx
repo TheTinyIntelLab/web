@@ -11,24 +11,25 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty"
 import { getPosts, formatDate } from "@/src/sanity/posts"
+import { site } from "@/src/lib/site"
+
+const title = "Blog & announcements"
+const description =
+  "Research, model releases, and announcements from The Tiny Intelligence Lab."
+
 export const metadata: Metadata = {
-  title: "Blog & announcements",
-  description:
-    "Research, model releases, and announcements from The Tiny Intelligence Lab.",
+  title,
+  description,
   alternates: { canonical: "/blog" },
-  twitter: {
-    card: "summary_large_image",
-    title: "Blog & announcements",
-    description:
-      "Research, model releases, and announcements from The Tiny Intelligence Lab.",
-    images: ["/opengraph-image"],
-  },
   openGraph: {
-    title: "Blog & announcements",
-    description:
-      "Research, model releases, and announcements from The Tiny Intelligence Lab.",
+    type: "website",
+    siteName: site.name,
+    title,
+    description,
     url: "/blog",
+    images: [site.socialImage],
   },
+  twitter: { card: "summary_large_image" },
 }
 export const revalidate = 60
 export default async function Blog() {
