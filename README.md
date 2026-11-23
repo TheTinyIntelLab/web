@@ -1,6 +1,6 @@
 # The Tiny Intelligence Lab
 
-The Tiny Intelligence Lab is an independent, one-person research lab. We build models for scientific problems and test whether understanding a problem's structure helps them learn better.
+The Tiny Intelligence Lab is an independent research lab. We build models for scientific problems and test whether understanding a problem's structure helps them learn better.
 
 Read [research and announcements on The Tiny Intelligence Lab website](https://thetinyintelligencelab.vercel.app/).
 

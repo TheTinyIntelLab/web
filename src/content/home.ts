@@ -1,7 +1,7 @@
 export const thesis = "Small models for science, built around the problem."
 export const about = {
   introduction: [
-    "The Tiny Intelligence Lab is an independent, one-person research lab building models for scientific problems. We've released Opal v1, our first model. It predicts how cells respond when two biological changes happen together, using measurements of each change on its own.",
+    "The Tiny Intelligence Lab is an independent research lab building models for scientific problems. We've released Opal v1, our first model. It predicts how cells respond when two biological changes happen together, using measurements of each change on its own.",
     "We're interested in what a model shouldn't have to learn from scratch. If swapping two inputs leaves the answer unchanged, the model should respect that. If a simple calculation explains part of the result, we can start there and learn what's left. We test whether building this knowledge into a model helps it learn better.",
   ],
   sections: [
