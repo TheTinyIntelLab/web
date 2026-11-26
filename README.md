@@ -67,3 +67,21 @@ Use Hugeicons Stroke Rounded from `@hugeicons/core-free-icons`, rendered with `H
 `pnpm build` syncs the leaderboard, runnable examples and citation from the Opal-Bench repository's `main` branch. Use `pnpm sync:opal-bench` to refresh them during development. The build fails if GitHub is unavailable or the leaderboard has no valid rows.
 
 Set `GITHUB_TOKEN` to authenticate the sync when GitHub's anonymous API quota is too low for your builds.
+
+To preview unpublished benchmark results, set `OPAL_BENCH_SOURCE` to the root of a local Opal-Bench checkout in your shell. For example, in PowerShell:
+
+```powershell
+$env:OPAL_BENCH_SOURCE = "../opal-bench/opal-bench"
+pnpm build
+Remove-Item Env:OPAL_BENCH_SOURCE
+```
+
+The override also works with `pnpm sync:opal-bench`. Paths are relative to the directory where you run the command. The page labels results from the checkout as a local working-tree snapshot. If the shipped few-shot file is missing, the page shows the published Markdown tables. Missing supplemental files leave their tracks unavailable.
+
+To sync an already pushed benchmark revision before it reaches `main`, clear `OPAL_BENCH_SOURCE` and set `OPAL_BENCH_REF` to a GitHub branch, tag or commit SHA. Use the full SHA when preparing a website commit so the generated results are reproducible. Both sync and build resolve the ref to a commit before fetching any files.
+
+```powershell
+$env:OPAL_BENCH_REF = "<pushed benchmark commit SHA>"
+pnpm sync:opal-bench
+Remove-Item Env:OPAL_BENCH_REF
+```
