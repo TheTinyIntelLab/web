@@ -3,26 +3,11 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowDown01Icon, ArrowUpRight01Icon } from "@hugeicons/core-free-icons"
 import { SiteShell } from "@/components/site-shell"
 import { ArticleBody } from "@/components/article-body"
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion"
 import { OpalLeaderboard } from "@/components/opal-leaderboard"
 import data from "@/src/content/opal-bench.json"
 
 const description =
   "Test how well a method predicts CRISPR pair growth in a new lab. Compare the results, get the data or submit your own method."
-const sectionTitles: Record<string, string> = {
-  install: "Run it locally",
-  results: "What worked and what didn't",
-  "submit-a-method": "Submit your method",
-  limitations: "What these scores can tell you",
-  "documentation-and-repository": "More in the repository",
-  license: "Code and data licences",
-  citation: "Cite Opal-Bench",
-}
 export const metadata: Metadata = {
   title: "Opal-Bench",
   description,
@@ -32,12 +17,12 @@ export const metadata: Metadata = {
 export default function OpalBench() {
   return (
     <SiteShell>
-      <article className="mx-auto w-[calc(100%-40px)] max-w-[660px] sm:w-[calc(100%-48px)]">
+      <article className="mx-auto w-[calc(100%-40px)] max-w-[660px] text-[17px] leading-relaxed sm:w-[calc(100%-48px)] sm:text-lg">
         <header className="pt-13 pb-12 sm:pt-22 sm:pb-16">
           <h1 className="text-[clamp(2.2rem,5vw,3rem)] leading-[1.15] font-normal tracking-[-0.06em]">
             Opal-Bench
           </h1>
-          <p className="mt-5 text-xl leading-relaxed">{data.tagline}</p>
+          <p className="mt-5 text-lg leading-relaxed">{data.tagline}</p>
           <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 font-heading text-sm">
             <a
               href={data.repo}
@@ -84,10 +69,11 @@ export default function OpalBench() {
             </a>
           </p>
         </header>
-        <p className="text-[17px] leading-relaxed sm:text-lg">
-          You get the screen&apos;s single-gene scores and a few measured pairs,
-          then predict the rest. Training uses other labs, so the score tests
-          how well your method transfers to a new screen.
+        <p>
+          You get a new screen&apos;s single-gene scores and a few measured
+          pairs, then predict the rest. Whole labs are held out of training.
+          Every method gets the same calibration pairs, and those pairs are
+          excluded from scoring.
         </p>
         <nav
           aria-label="On this page"
@@ -99,76 +85,100 @@ export default function OpalBench() {
           >
             Leaderboard
           </a>
-          <a href="#details" className="hover:text-foreground hover:underline">
-            About the benchmark
+          <a href="#run" className="hover:text-foreground hover:underline">
+            Run it locally
+          </a>
+          <a href="#submit" className="hover:text-foreground hover:underline">
+            Submit a method
+          </a>
+          <a href="#data" className="hover:text-foreground hover:underline">
+            Data and citation
           </a>
         </nav>
         <section id="leaderboard" className="mt-10 scroll-mt-8">
-          <h2 className="text-lg font-medium tracking-tight">Leaderboard</h2>
+          <h2 className="mb-5 text-[22px] leading-snug">Leaderboard</h2>
+          <p>
+            Scores compare each method&apos;s mean squared error with MID, a
+            baseline built from single-gene scores. Lower is better, and each
+            lab gets equal weight.{" "}
+            <a
+              href={`${data.repo}/blob/main/leaderboard/LEADERBOARD.md`}
+              className="underline"
+            >
+              Method definitions and scoring details
+            </a>
+            .
+          </p>
           <OpalLeaderboard
             tracks={data.tracks}
             defaultTrack={data.defaultTrack}
           />
         </section>
-        <section id="details" className="mt-12 scroll-mt-8">
-          <h2 className="mb-6 text-lg font-medium tracking-tight">
-            About the benchmark
+        <section id="run" className="mt-12 scroll-mt-8">
+          <h2 className="mb-5 text-[22px] leading-snug">Run it locally</h2>
+          <p className="mb-6">
+            Clone the repository and run these commands in a Python environment.
+            The shipped baselines run on a CPU with NumPy and pandas. See the
+            <a href={`${data.repo}#install`} className="underline">
+              {" "}
+              full setup instructions
+            </a>{" "}
+            to prepare additional data or reproduce the published tables.
+          </p>
+          <ArticleBody body={`\`\`\`bash\n${data.quickstart}\n\`\`\``} />
+        </section>
+        <section id="submit" className="mt-12 scroll-mt-8">
+          <h2 className="mb-5 text-[22px] leading-snug">
+            Benchmark your method
           </h2>
-          <Accordion multiple>
-            {data.sections.map((section) => (
-              <AccordionItem
-                key={section.id}
-                id={section.id}
-                value={section.id}
-              >
-                <AccordionTrigger>
-                  {sectionTitles[section.id] ?? section.title}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ArticleBody body={section.body} />
-                  {section.id === "results" && (
-                    <Accordion multiple className="mt-6">
-                      <AccordionItem value="provenance">
-                        <AccordionTrigger>
-                          How the methods were scored
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <ArticleBody body={data.leaderboardNotes} />
-                        </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="negative-results">
-                        <AccordionTrigger>
-                          Experiments that didn&apos;t work
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <ArticleBody body={data.negative} />
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  )}
-                  {section.id === "data-and-reproduction" && (
-                    <div className="mt-6">
-                      <ArticleBody body={data.intro} />
-                    </div>
-                  )}
-                  {section.id === "license" && (
-                    <div className="mt-6">
-                      <ArticleBody body={data.licenses} />
-                    </div>
-                  )}
-                  {section.id === "citation" && (
-                    <a
-                      href="/opal-bench/CITATION.cff"
-                      download
-                      className="mt-6 inline-block min-h-11 font-heading text-sm underline"
-                    >
-                      Download CITATION.cff
-                    </a>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <p className="mb-6">
+            Expose a factory that receives allowed training pairs and returns a
+            predictor. It gets calibration pairs and evaluation inputs with
+            outcomes removed. Return one prediction per row, or abstain at an
+            unsupported budget.
+          </p>
+          <ArticleBody body={`\`\`\`bash\n${data.submission}\n\`\`\``} />
+          <p className="mt-6">
+            Tune only on allowed training labs, never on the locked test or
+            SHEN26. Keep the published splits, draws, budgets and metric.
+            <a href={`${data.repo}#submit-a-method`} className="underline">
+              {" "}
+              Submit a pull request
+            </a>{" "}
+            with the required rows and a link to your code.
+          </p>
+        </section>
+        <section id="data" className="mt-12 scroll-mt-8">
+          <h2 className="mb-5 text-[22px] leading-snug">Data and citation</h2>
+          <p>
+            The code is MIT licensed. Data keep their
+            <a
+              href={`${data.repo}/blob/main/DATA_LICENSES.md`}
+              className="underline"
+            >
+              {" "}
+              source licences
+            </a>
+            , and restricted screen tables aren&apos;t included. Published
+            aggregate errors aren&apos;t the underlying screen data.
+          </p>
+          <p className="mt-6">
+            Some methods improve the locked test but fail to beat MID on fresh
+            SHEN26. The{" "}
+            <a
+              href={`${data.repo}/blob/main/NEGATIVE_RESULTS.md`}
+              className="underline"
+            >
+              negative results
+            </a>{" "}
+            record those comparisons.
+          </p>
+          <p className="mt-6">
+            <a href="/opal-bench/CITATION.cff" download className="underline">
+              Cite Opal-Bench
+            </a>{" "}
+            and the original data sources you use.
+          </p>
         </section>
       </article>
     </SiteShell>

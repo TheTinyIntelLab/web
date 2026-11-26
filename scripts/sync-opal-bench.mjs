@@ -21,14 +21,8 @@ async function get(url) {
 const { sha } = await (await get(`${api}/commits/main`)).json()
 if (!/^[a-f0-9]{40}$/.test(sha)) throw new Error("Invalid GitHub commit")
 const raw = `https://raw.githubusercontent.com/TheTinyIntelLab/opal-bench/${sha}/`
-const files = [
-  "README.md",
-  "leaderboard/LEADERBOARD.md",
-  "NEGATIVE_RESULTS.md",
-  "DATA_LICENSES.md",
-  "CITATION.cff",
-]
-const [readme, leaderboard, negative, licenses, citation] = await Promise.all(
+const files = ["README.md", "leaderboard/LEADERBOARD.md", "CITATION.cff"]
+const [readme, leaderboard, citation] = await Promise.all(
   files.map(async (path) => (await get(raw + path)).text())
 )
 
@@ -92,59 +86,20 @@ const defaultTrack = tracks.find((track) => /Locked test/i.test(track.title))
 if (!defaultTrack?.budgets.some((budget) => budget.k === 20))
   throw new Error("Missing locked test k = 20")
 
-// Preserve new README sections automatically; resolve repository-relative links.
-function markdown(text) {
-  return text
-    .replace(
-      /<img\s+[^>]*src="([^"]+)"[^>]*alt="([^"]*)"[^>]*\/?\s*>/g,
-      "![$2]($1)"
-    )
-    .replace(/(!?\[[^\]]*\]\()([^\s)]+)(\))/g, (_, start, path, end) => {
-      if (/^(https?:|mailto:|#|\/)/.test(path)) return start + path + end
-      return (
-        start +
-        (start.startsWith("![") && path.startsWith("images/")
-          ? `/opal-bench/${path}`
-          : `${repo}/blob/main/${path}`) +
-        end
-      )
-    })
-    .replace(/Opal v1\b/g, "Opal")
-}
-const introStart = readme.indexOf("Opal-Bench measures")
-if (introStart < 0) throw new Error("Missing README introduction")
-const content = markdown(readme.slice(introStart))
-const sections = content.split(/^## /m)
-const intro = sections.shift().trim()
-const parsedSections = sections.map((section) => {
-  const newline = section.indexOf("\n")
-  const title = section.slice(0, newline).trim()
-  return {
-    title,
-    id: title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/-$/, ""),
-    body: section.slice(newline).trim(),
-  }
-})
-const images = [
-  ...new Set(
-    [...content.matchAll(/\/opal-bench\/(images\/[\w.-]+)/g)].map(
-      (match) => match[1]
-    )
-  ),
-]
-await mkdir(new URL("public/opal-bench/images/", root), { recursive: true })
-await Promise.all(
-  images.map(async (path) => {
-    const bytes = await (await get(raw + path)).arrayBuffer()
-    await writeFile(
-      new URL(`public/opal-bench/${path}`, root),
-      Buffer.from(bytes)
-    )
-  })
+// Keep the runnable examples in step with the README.
+const commands = readme
+  .split(/\r?\n/)
+  .map((line) => line.replace(/\s+#.*$/, "").trim())
+const install = commands.find((line) =>
+  line.startsWith("python -m pip install ")
 )
+const score = commands.find((line) => line === "opal-bench-score fewshot")
+const submission = commands.find((line) =>
+  line.startsWith("opal-bench-score fewshot --method ")
+)
+if (!install || !score || !submission)
+  throw new Error("Missing README scoring commands")
+await mkdir(new URL("public/opal-bench/", root), { recursive: true })
 await mkdir(new URL("src/content/", root), { recursive: true })
 await writeFile(new URL("public/opal-bench/CITATION.cff", root), citation)
 await writeFile(
@@ -155,15 +110,10 @@ await writeFile(
       sha,
       syncedAt: new Date().toISOString().slice(0, 10),
       tagline: readme.match(/<p>([^<]+)<\/p>/)?.[1],
-      intro,
-      sections: parsedSections,
+      quickstart: `${install}\n${score}`,
+      submission,
       tracks,
       defaultTrack: defaultTrack.id,
-      leaderboardNotes: markdown(
-        leaderboard.split(/^## Main track/m)[0].replace(/^# .*\n/, "")
-      ),
-      negative: markdown(negative.replace(/^# .*\n/, "")),
-      licenses: markdown(licenses.replace(/^# .*\n/, "")),
     },
     null,
     2
