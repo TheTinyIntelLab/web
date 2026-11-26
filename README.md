@@ -65,3 +65,5 @@ Use Hugeicons Stroke Rounded from `@hugeicons/core-free-icons`, rendered with `H
 ## Opal-Bench page sync
 
 `pnpm build` syncs the page content, leaderboard, displayed figures and citation from the Opal-Bench repository's `main` branch. Use `pnpm sync:opal-bench` to refresh them during development. The build fails if GitHub is unavailable or the leaderboard has no valid rows.
+
+Set `GITHUB_TOKEN` to authenticate the sync when GitHub's anonymous API quota is too low for your builds.

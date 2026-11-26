@@ -5,7 +5,13 @@ const repo = "https://github.com/TheTinyIntelLab/opal-bench"
 const api = "https://api.github.com/repos/TheTinyIntelLab/opal-bench"
 
 async function get(url) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(30000) })
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(30000),
+    headers:
+      url.startsWith(api) && process.env.GITHUB_TOKEN
+        ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+        : undefined,
+  })
   if (!response.ok)
     throw new Error(`Opal-Bench sync: ${response.status} ${url}`)
   return response
