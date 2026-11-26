@@ -159,12 +159,9 @@ export default function Home() {
           id="opal-bench"
           className="mt-14 flex scroll-mt-6 flex-col gap-5"
         >
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-lg leading-snug font-medium tracking-tight">
-              Opal-Bench
-            </h2>
-            <Badge variant="secondary">Released</Badge>
-          </div>
+          <h2 className="text-lg leading-snug font-medium tracking-tight">
+            Opal-Bench
+          </h2>
           {opalBench.map((text) => (
             <p key={text}>{text}</p>
           ))}
