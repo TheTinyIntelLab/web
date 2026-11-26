@@ -4,6 +4,12 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowDown01Icon, ArrowUpRight01Icon } from "@hugeicons/core-free-icons"
 import { SiteShell } from "@/components/site-shell"
 import { ArticleBody } from "@/components/article-body"
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion"
 import { OpalLeaderboard } from "@/components/opal-leaderboard"
 import data from "@/src/content/opal-bench.json"
 
@@ -118,35 +124,39 @@ export default function OpalBench() {
                     .slice(1)
                     .join("\n")}
                 />
-                <details className="mt-6 text-base">
-                  <summary className="min-h-11 cursor-pointer font-heading text-sm underline">
-                    Metric, method names and provenance
-                  </summary>
-                  <div className="pt-5">
-                    <ArticleBody body={data.leaderboardNotes} />
-                  </div>
-                </details>
-                <details className="mt-4 text-base">
-                  <summary className="min-h-11 cursor-pointer font-heading text-sm underline">
-                    Read the negative results
-                  </summary>
-                  <div className="pt-5">
-                    <ArticleBody body={data.negative} />
-                  </div>
-                </details>
+                <Accordion multiple className="mt-6">
+                  <AccordionItem value="provenance">
+                    <AccordionTrigger>
+                      Metric, method names and provenance
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <ArticleBody body={data.leaderboardNotes} />
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="negative-results">
+                    <AccordionTrigger>
+                      Read the negative results
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <ArticleBody body={data.negative} />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </>
             ) : (
               <ArticleBody body={section.body} />
             )}
             {section.id === "license" && (
-              <details className="mt-6">
-                <summary className="min-h-11 cursor-pointer font-heading text-sm underline">
-                  Per-source data licences and redistribution audit
-                </summary>
-                <div className="pt-5">
-                  <ArticleBody body={data.licenses} />
-                </div>
-              </details>
+              <Accordion className="mt-6">
+                <AccordionItem value="licenses">
+                  <AccordionTrigger>
+                    Per-source data licences and redistribution audit
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <ArticleBody body={data.licenses} />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             )}
             {section.id === "citation" && (
               <a

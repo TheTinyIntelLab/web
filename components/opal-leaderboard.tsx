@@ -1,6 +1,16 @@
 "use client"
 
 import { useState } from "react"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableCaption,
+} from "@/components/ui/table"
 import type data from "@/src/content/opal-bench.json"
 
 type Track = (typeof data.tracks)[number]
@@ -30,9 +40,9 @@ export function OpalLeaderboard({
           htmlFor="opal-track"
         >
           Track
-          <select
+          <NativeSelect
             id="opal-track"
-            className="min-h-11 w-full min-w-0 rounded-md border bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring"
+            className="w-full"
             value={trackId}
             onChange={(event) => {
               const next = tracks.find(
@@ -48,27 +58,27 @@ export function OpalLeaderboard({
             }}
           >
             {tracks.map((item) => (
-              <option key={item.id} value={item.id}>
+              <NativeSelectOption key={item.id} value={item.id}>
                 {item.group.startsWith("Shipped") ? "Shipped data · " : ""}
                 {item.label}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="flex flex-col gap-2" htmlFor="opal-budget">
           Measured pairs, k
-          <select
+          <NativeSelect
             id="opal-budget"
-            className="min-h-11 rounded-md border bg-background px-3 focus-visible:outline-2 focus-visible:outline-ring"
+            className="w-full"
             value={k}
             onChange={(event) => setK(Number(event.target.value))}
           >
             {track.budgets.map((item) => (
-              <option key={item.k} value={item.k}>
+              <NativeSelectOption key={item.k} value={item.k}>
                 {item.k}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </label>
       </div>
       <p className="mt-4 text-sm leading-relaxed">{track.title}</p>
@@ -80,33 +90,28 @@ export function OpalLeaderboard({
       <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
         {budget.rows.length} methods · k = {k} · Lower error ratios are better.
       </p>
-      <div
-        className="mt-4 overflow-x-auto focus-visible:outline-2 focus-visible:outline-ring"
-        role="region"
-        aria-label="Leaderboard results, scroll horizontally for all columns"
-        tabIndex={0}
-      >
-        <table className="w-full min-w-[640px] border-collapse text-left text-xs tabular-nums sm:text-sm">
-          <caption className="sr-only">
+      <div className="mt-4">
+        <Table className="w-full min-w-[640px] border-collapse text-left text-xs tabular-nums sm:text-sm">
+          <TableCaption className="sr-only">
             {track.title}, k = {k}. Error relative to MID, bootstrap ranks,
             probability of first rank and units better than MID.
-          </caption>
-          <thead>
-            <tr className="border-y">
+          </TableCaption>
+          <TableHeader>
+            <TableRow className="border-y">
               {budget.headers.map((header) => (
-                <th
+                <TableHead
                   key={header}
                   scope="col"
                   className="px-3 py-3 font-medium first:pl-0"
                 >
                   {header}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {budget.rows.map((row) => (
-              <tr
+              <TableRow
                 key={row[0]}
                 className={row[0] === "MID" ? "border-b bg-muted" : "border-b"}
               >
@@ -119,26 +124,26 @@ export function OpalLeaderboard({
                         )
                       : cell
                   return index === 0 ? (
-                    <th
+                    <TableHead
                       scope="row"
                       key={budget.headers[index]}
                       className="py-3 pr-3 pl-1 text-left font-normal whitespace-nowrap"
                     >
                       {text}
-                    </th>
+                    </TableHead>
                   ) : (
-                    <td
+                    <TableCell
                       key={budget.headers[index]}
                       className="px-3 py-3 whitespace-nowrap"
                     >
                       {text}
-                    </td>
+                    </TableCell>
                   )
                 })}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
       <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:hidden">
         Scroll horizontally to see all columns.
