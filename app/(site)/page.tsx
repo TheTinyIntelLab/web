@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { SiteShell } from "@/components/site-shell"
 import {
   about,
   opal,
@@ -39,7 +38,7 @@ function CopyParagraph({ text }: { text: string }) {
 
 export default function Home() {
   return (
-    <SiteShell home>
+    <>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -162,9 +161,7 @@ export default function Home() {
           <h2 className="text-lg leading-snug font-medium tracking-tight">
             Opal-Bench
           </h2>
-          {opalBench.map((text) => (
-            <p key={text}>{text}</p>
-          ))}
+          <p>{opalBench}</p>
           <Button
             nativeButton={false}
             role="link"
@@ -182,6 +179,6 @@ export default function Home() {
           </Button>
         </section>
       </article>
-    </SiteShell>
+    </>
   )
 }

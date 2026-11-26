@@ -1,6 +1,7 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
+import { SiteHomeLink } from "@/components/site-home-link"
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -8,7 +9,6 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
   NavigationMenuContent,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -36,13 +36,7 @@ const groups = [
     ],
   },
 ]
-export function SiteShell({
-  children,
-  home = false,
-}: {
-  children: React.ReactNode
-  home?: boolean
-}) {
+export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Button
@@ -53,30 +47,8 @@ export function SiteShell({
         className="fixed -top-24 left-4 z-50 focus:top-4"
       />
       <header className="flex items-center justify-between gap-3 px-3 py-2.5 sm:px-7 sm:py-3">
-        {!home && (
-          <Button
-            nativeButton={false}
-            role="link"
-            variant="ghost"
-            size="icon"
-            render={<Link href="/" />}
-            aria-label="The Tiny Intelligence Lab home"
-            className="relative size-11 shrink-0 overflow-hidden"
-          >
-            <Image
-              src="/logo.png"
-              alt=""
-              width={512}
-              height={512}
-              className="absolute top-1/2 left-1/2 size-28 max-w-none -translate-x-1/2 -translate-y-1/2 [clip-path:polygon(50%_32%,65%_41%,65%_58%,50%_68%,35%_58%,35%_41%)]"
-            />
-          </Button>
-        )}
-        <NavigationMenu
-          aria-label="Main navigation"
-          align="end"
-          className="ml-auto"
-        >
+        <SiteHomeLink />
+        <NavigationMenu aria-label="Main navigation" className="ml-auto">
           <NavigationMenuList className="flex-wrap justify-end gap-0 sm:gap-1">
             {[
               { label: "About", href: "/#about" },
@@ -86,7 +58,7 @@ export function SiteShell({
               <NavigationMenuItem key={link.href}>
                 <NavigationMenuLink
                   render={<Link href={link.href} />}
-                  className={navigationMenuTriggerStyle()}
+                  className={buttonVariants({ variant: "ghost" })}
                 >
                   {link.label}
                 </NavigationMenuLink>
