@@ -28,10 +28,7 @@ export default async function Blog() {
     <SiteShell>
       <div className="mx-auto w-[calc(100%-40px)] max-w-[660px] sm:w-[calc(100%-48px)]">
         <header className="pt-13 pb-20 sm:pt-22 sm:pb-24">
-          <Link href="/" className="font-heading text-xs text-muted-foreground">
-            The Tiny Intelligence Lab
-          </Link>
-          <h1 className="mt-6 text-[clamp(2.2rem,5vw,3rem)] leading-[1.15] font-normal tracking-[-0.06em]">
+          <h1 className="text-[clamp(2.2rem,5vw,3rem)] leading-[1.15] font-normal tracking-[-0.06em]">
             Blog &amp; announcements
           </h1>
           <p className="mt-5 text-lg leading-relaxed">

@@ -108,12 +108,6 @@ export default async function Article({ params }: Props) {
           </h1>
           <p className="mt-5 text-lg leading-relaxed">{post.summary}</p>
           <div className="mt-6 font-heading text-xs text-muted-foreground">
-            <Link href="/" className="hover:underline">
-              {site.name}
-            </Link>
-            <span aria-hidden="true" className="mx-2">
-              ·
-            </span>
             <time dateTime={post.publishedAt}>
               {formatDate(post.publishedAt)}
             </time>
