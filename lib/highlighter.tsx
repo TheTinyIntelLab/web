@@ -61,9 +61,9 @@ export async function highlightCode(code: string, language: string) {
       defaultColor: false,
     })
     .tokens.map((line) =>
-      line.map((token, index) => (
+      line.map((token) => (
         <span
-          key={index}
+          key={token.offset}
           style={token.htmlStyle as React.CSSProperties}
           className="text-(--shiki-light) dark:text-(--shiki-dark)"
         >

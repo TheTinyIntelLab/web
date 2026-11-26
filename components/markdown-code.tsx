@@ -18,7 +18,14 @@ export async function MarkdownCode({ children }: { children?: ReactNode }) {
   const code = element.props.children.replace(/\n$/, "")
   const language =
     element.props.className?.match(/language-(\S+)/)?.[1] ?? "text"
-  const lines = (await highlightCode(code, language)) ?? code.split("\n")
+  const sourceLines = code.split("\n")
+  const highlighted = await highlightCode(code, language)
+  const lines = []
+  let offset = 0
+  for (const [index, line] of sourceLines.entries()) {
+    lines.push({ offset, content: highlighted?.[index] ?? line })
+    offset += line.length + 1
+  }
   return (
     <CodeBlock>
       <CodeBlockHeader>
@@ -27,9 +34,9 @@ export async function MarkdownCode({ children }: { children?: ReactNode }) {
           <CodeBlockCopyButton value={code} />
         </CodeBlockActions>
       </CodeBlockHeader>
-      <CodeBlockContent lineNumbers aria-label={`${language} code`}>
-        {lines.map((line, index) => (
-          <CodeBlockLine key={index}>{line}</CodeBlockLine>
+      <CodeBlockContent aria-label={`${language} code`}>
+        {lines.map(({ offset, content }) => (
+          <CodeBlockLine key={offset}>{content}</CodeBlockLine>
         ))}
       </CodeBlockContent>
     </CodeBlock>
