@@ -13,9 +13,9 @@ import {
 export async function MarkdownCode({ children }: { children?: ReactNode }) {
   const element = Children.only(children) as ReactElement<{
     className?: string
-    children: string
+    children?: string
   }>
-  const code = element.props.children.replace(/\n$/, "")
+  const code = (element.props.children ?? "").replace(/\n$/, "")
   const language =
     element.props.className?.match(/language-(\S+)/)?.[1] ?? "text"
   const sourceLines = code.split("\n")

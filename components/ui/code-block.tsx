@@ -62,10 +62,13 @@ function CodeBlockActions({
 }
 
 function CodeBlockCopyButton({ value }: { value: string }) {
-  const [copied, setCopied] = React.useState(false)
+  const [status, setStatus] = React.useState<"idle" | "copied" | "error">(
+    "idle"
+  )
+  const copied = status === "copied"
   React.useEffect(() => {
     if (!copied) return
-    const timeout = setTimeout(() => setCopied(false), 2000)
+    const timeout = setTimeout(() => setStatus("idle"), 2000)
     return () => clearTimeout(timeout)
   }, [copied])
   return (
@@ -75,11 +78,13 @@ function CodeBlockCopyButton({ value }: { value: string }) {
         variant="ghost"
         size="icon-xs"
         aria-label={copied ? "Copied" : "Copy"}
-        onClick={() => {
-          navigator.clipboard
-            .writeText(value)
-            .then(() => setCopied(true))
-            .catch(() => {})
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(value)
+            setStatus("copied")
+          } catch {
+            setStatus("error")
+          }
         }}
       >
         <HugeiconsIcon
@@ -87,8 +92,17 @@ function CodeBlockCopyButton({ value }: { value: string }) {
           strokeWidth={2}
         />
       </Button>
-      <span aria-live="polite" className="sr-only">
-        {copied ? "Copied" : ""}
+      <span
+        aria-live="polite"
+        className={
+          status === "error" ? "max-w-40 text-xs text-destructive" : "sr-only"
+        }
+      >
+        {status === "error"
+          ? "Copy failed. Select and copy the code manually."
+          : copied
+            ? "Copied"
+            : ""}
       </span>
     </>
   )
