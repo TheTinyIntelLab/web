@@ -1,0 +1,1638 @@
+{
+  "repo": "https://github.com/TheTinyIntelLab/opal-bench",
+  "sha": "0dfac3715595a0fab7ab85f96ce4a07c8581717c",
+  "syncedAt": "2026-11-26",
+  "tagline": "Predict combinatorial CRISPR growth in a lab you have never seen.",
+  "intro": "Opal-Bench measures how well you can predict pair growth in a CRISPR screen your method hasn't seen. You get the screen's single-gene scores and at most k measured pairs, then predict the rest. Entire labs are held out, so pairs from the target lab can't leak into training through a random split.\r\n\r\nThe full benchmark covers 22 labs and 411,098 lab-level pairs across CRISPRi, Cas9, paired Cas9, Cas12a and CHyMErA. You can score the 17 shipped labs with NumPy and pandas on a CPU. Five restricted labs are excluded from the source data, but their aggregate evaluation rows remain in the leaderboard.",
+  "sections": [
+    {
+      "title": "How it works",
+      "id": "how-it-works",
+      "body": "Train on the allowed labs, then use the target screen's singles and k calibration pairs to predict its unmeasured pairs. Each method gets the same calibration draws, and the scorer excludes those pairs from evaluation.\r\n\r\n![Other labs provide training pairs. Target singles and k measured pairs calibrate a method, which predicts the remaining target pairs. Scoring compares MSE against MID and averages over labs.](/opal-bench/images/benchmark_overview.svg)\r\n\r\n| Track | Evaluation units | Allowed training | Measured pairs, k | Draws |\r\n| --- | --- | --- | --- | --- |\r\n| Development | 18 labs | Other development labs, nested leave-one-lab-out | 0, 10, 20, 50 | 20 |\r\n| Locked test | 4 labs, 31 cell lines | All 18 development labs | 0, 10, 20, 50 | 20 |\r\n| Fresh SHEN26 | 2 cell lines | Every lab in the benchmark table | 0, 5, 20 | 50 |\r\n\r\nAt k = 0 there is one draw and the whole unit is scored. The main metric is **MSE / MSE(MID)**, geometrically averaged over labs after averaging log ratios over draws and cell lines within each lab. Lower is better; MID is 1. Rank intervals use 2,000 bootstrap replicates over labs, then cell lines where applicable.\r\n\r\nAll screens share one normalization: counts to CPM, log2 fold change, centering on controls or singles, then division by c = −(the fifth percentile of single-gene log fold changes), floored at 0.1. In these units ADD = sa + sb, MIN = min(sa, sb), and MID = ½(ADD + MIN).\r\n\r\nAuxiliary tasks measure zero-shot held-out-lab prediction (`a`), 20-pair calibration (`a_fs20`), held-out genes (`b`), strong-negative-interaction AUROC (`c`) and between-lab reproducibility (`d`). The [full leaderboard](https://github.com/TheTinyIntelLab/opal-bench/blob/main/leaderboard/LEADERBOARD.md) includes every track."
+    },
+    {
+      "title": "Install",
+      "id": "install",
+      "body": "Use Python 3.10 or newer. From this checkout:\r\n\r\n```bash\r\npython -m venv .venv\r\n# Activate the environment for your shell, then:\r\npython -m pip install -e \".[test]\"\r\npython -X utf8 -m pytest -q\r\nopal-bench-score --help\r\n```\r\n\r\nThe package is `Opal-Bench`; its Python import is `opal_bench`. Tests reproduce shipped baseline rows, the published leaderboard tables and tasks on the 17 shipped labs. The optional Opal re-score needs a separate growth bundle. A full test run takes about two minutes on one CPU.\r\n\r\n```bash\r\nopal-bench-score fewshot                        # Shipped dev, test and fresh baselines\r\nopal-bench-score tasks                          # Auxiliary tasks on shipped data\r\nopal-bench-score table leaderboard/rows.csv.gz  # Tables from all published rows\r\n```"
+    },
+    {
+      "title": "Results",
+      "id": "results",
+      "body": "On the locked test, a six-coefficient ridge fitted to 20 target pairs comes close to the larger networks, with overlapping bootstrap rank intervals. That result doesn't carry over to fresh SHEN26. There, Opal refit is the only listed method below MID at k = 20.\r\n\r\n![MSE relative to MID across calibration budgets. Ridge and Opal refit improve on the locked test; gains are smaller on fresh SHEN26.](/opal-bench/images/label_budget.svg)\r\n\r\n### Locked test, k = 20\r\n\r\n| Method | MSE / MID | Rank [95% CI] |\r\n| --- | ---: | ---: |\r\n| NET_MLP | 0.424 | 1 [1–3] |\r\n| NET_ATT | 0.425 | 2 [1–4] |\r\n| Opal refit (v1R) | 0.435 | 3 [1–4] |\r\n| Cross-lab ridge (FS_LIN5x) | 0.456 | 4 [3–4] |\r\n| Six-coefficient ridge (FS_LIN5_lam) | 0.460 | 5 [4–5] |\r\n| MID | 1.000 | 12 [12–13] |\r\n| Opal frozen (v1F) | 1.658 | 16 [13–16] |\r\n\r\n![All 16 locked-test methods at k = 20, with MSE ratios and bootstrap rank intervals. The small ridge and the largest networks have overlapping rank intervals.](/opal-bench/images/locked_test.svg)\r\n\r\nThe figures use the published per-draw rows, including aggregate results for the five restricted labs. You can re-score the built-in rules and few-shot ridge here. The cross-lab learners have published evaluation rows, but their training code isn't included. The [leaderboard](https://github.com/TheTinyIntelLab/opal-bench/blob/main/leaderboard/LEADERBOARD.md) records each method's provenance.\r\n\r\n### What did not transfer\r\n\r\nWith no target pairs, every tested learner loses to MID on the locked test. Foundation-model and graph features don't beat the singles-only few-shot ridge, frozen Opal doesn't transfer, and choosing calibration pairs actively performs worse than choosing them at random. On fresh SHEN26 at k = 20, Opal refit scores 0.941 and the small ridge scores 1.046 against MID at 1.000. [Negative results](https://github.com/TheTinyIntelLab/opal-bench/blob/main/NEGATIVE_RESULTS.md) records the experiments behind these comparisons."
+    },
+    {
+      "title": "Submit a method",
+      "id": "submit-a-method",
+      "body": "Expose a factory that receives allowed training pairs and returns a predictor. The predictor receives labeled calibration pairs and evaluation pairs with `y` removed; return one prediction per evaluation row, or `None` to abstain at an unsupported budget.\r\n\r\n```python\r\nimport numpy as np\r\n\r\n\r\ndef make_method(train):\r\n    def predict(cal, ev):\r\n        return np.minimum(ev.sa, ev.sb).to_numpy()  # Example: MIN baseline\r\n    return predict\r\n```\r\n\r\n```bash\r\nopal-bench-score fewshot --method mypackage.mymodule:make_method --name MYMODEL --rows my_rows.csv.gz\r\n```\r\n\r\nTune only by nested leave-one-lab-out on the allowed training labs. Use no target pair outcomes beyond the k calibration pairs, and never tune on the locked test or SHEN26. Calibration draws are fixed by the published md5 seeds; do not change splits, seeds, k grids or the metric.\r\n\r\nTo submit, open a pull request with rows covering all 22 labs and a link to your method code. Auxiliary tasks `a`–`c` accept a predictions CSV with `task,lab,key,pred`; `python -m opal_bench.template --help` describes the required rows."
+    },
+    {
+      "title": "Data and reproduction",
+      "id": "data-and-reproduction",
+      "body": "The shipped lab-level table contains **334,669 pairs from 17 labs**. Source sizes vary substantially, so the metric gives each lab equal weight rather than letting the largest screen dominate.\r\n\r\n![Pair counts for the 17 shipped labs. SPIDR25 and HORLBECK18 are the largest sources; BURGOLD25 is the shipped locked-test lab.](/opal-bench/images/data_coverage.svg)\r\n\r\n| Path | Contents |\r\n| --- | --- |\r\n| `data/redistributable/bench_pairs.csv.gz` | Lab-level growth scores, gene pairs and single-gene scores |\r\n| `data/redistributable/bench_priors.csv.gz` | STRING combined scores and Ensembl paralog identity |\r\n| `data/redistributable/test_units.csv.gz` | 16,940 cell-line rows for BURGOLD25, HT-29 |\r\n| `data/redistributable/by_source/` | One file for each shipped lab |\r\n| `data/fresh/SHEN26.csv.gz` | 1,530 rows: 765 pairs across HCT116 and GM12878 |\r\n| `leaderboard/rows.csv.gz` | 49,038 per-draw MSE rows for all published methods |\r\n\r\n### Score all 22 labs locally\r\n\r\nThe public checkout covers 16 development labs, BURGOLD25 and fresh SHEN26. ABBVIE25, DU17, HAN17, KLINGBEIL24 and SCHEMATIC25 are excluded because their source terms restrict or don't clearly allow redistribution. Raw-source preprocessing scripts aren't bundled.\r\n\r\nIf you independently prepare compatible, normalized pair, prior and cell-line tables under the source terms, merge them with the shipped data:\r\n\r\n```bash\r\npython -m opal_bench.prepare --extra <dir>/bench_pairs.csv.gz --extra-priors <dir>/bench_priors.csv.gz --test-units <dir>/test_units.csv.gz\r\n```\r\n\r\nThe scorer uses `data/full/` when it exists, and Git ignores it. [SHA256SUMS.txt](https://github.com/TheTinyIntelLab/opal-bench/blob/main/SHA256SUMS.txt) covers the shipped files."
+    },
+    {
+      "title": "Limitations",
+      "id": "limitations",
+      "body": "The locked-test labs were used in earlier zero-shot pilots, so they were held out from few-shot development but are not pristine. SHEN26 was never used during development and provides the fresh check. Its interaction signal is small relative to noise, and model gains there are correspondingly smaller.\r\n\r\nLab agreement is limited: median between-lab correlation is 0.21 across the full benchmark. These scores measure pair-growth prediction under the declared data access rules; they do not establish biological discovery, causal interactions or universal transfer across screens. To our knowledge, this is the first public held-out-lab pair-growth benchmark spanning CRISPRi, Cas9, Cas12a and CHyMErA under one normalization. Related work includes SLKB (NAR 2024) and MLEC-iGeneCombo (2025)."
+    },
+    {
+      "title": "Documentation and repository",
+      "id": "documentation-and-repository",
+      "body": "- [Full leaderboard](https://github.com/TheTinyIntelLab/opal-bench/blob/main/leaderboard/LEADERBOARD.md) records results, ranks and method provenance.\r\n- [Dataset card](https://github.com/TheTinyIntelLab/opal-bench/blob/main/DATASET_CARD.md) documents the data configurations and schemas.\r\n- [Source licenses](https://github.com/TheTinyIntelLab/opal-bench/blob/main/DATA_LICENSES.md) records the redistribution audit for each lab.\r\n- [Negative results](https://github.com/TheTinyIntelLab/opal-bench/blob/main/NEGATIVE_RESULTS.md) preserves unsuccessful experiments.\r\n- `src/` contains scoring, baselines, metrics, data loading and adapters; `tests/` contains frozen numerical expectations.\r\n- `tools/plot_readme.py` regenerates the benchmark figures. Install Matplotlib, then run `python tools/plot_readme.py`.\r\n\r\n[Figure data](https://github.com/TheTinyIntelLab/opal-bench/blob/main/images/figure_data.json) records the plotted values and source hashes."
+    },
+    {
+      "title": "License",
+      "id": "license",
+      "body": "Original code is [MIT licensed](https://github.com/TheTinyIntelLab/opal-bench/blob/main/LICENSE). Data keep their [per-source licenses](https://github.com/TheTinyIntelLab/opal-bench/blob/main/DATA_LICENSES.md), including GPL-3.0-or-later terms for the SLKB-derived labs. A code license does not override a source dataset's terms. Restricted source tables and trained checkpoints are not included."
+    },
+    {
+      "title": "Citation",
+      "id": "citation",
+      "body": "Use [CITATION.cff](https://github.com/TheTinyIntelLab/opal-bench/blob/main/CITATION.cff) to cite Opal-Bench, and cite the original data sources you use.\r\n\r\n> Prakash, A. V. (2026). Opal-Bench: a held-out-lab benchmark for combinatorial CRISPR growth prediction. The Tiny Intelligence Lab."
+    }
+  ],
+  "tracks": [
+    {
+      "id": "track-0",
+      "title": "Main track: few-shot held-out lab — Development: 18 labs, nested leave-one-lab-out, 20 draws",
+      "label": "Development",
+      "group": "Main track: few-shot held-out lab",
+      "note": "",
+      "budgets": [
+        {
+          "k": 0,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MID",
+              "1.000",
+              "1 [1–3]",
+              "0.609",
+              "0/18"
+            ],
+            [
+              "GBM ³",
+              "1.086",
+              "2 [1–6]",
+              "0.255",
+              "10/18"
+            ],
+            [
+              "MIN",
+              "1.135",
+              "3 [1–5]",
+              "0.127",
+              "8/18"
+            ],
+            [
+              "v1O ²",
+              "1.196",
+              "4 [2–6]",
+              "0.000",
+              "2/18"
+            ],
+            [
+              "ADD",
+              "1.389",
+              "5 [2–11]",
+              "0.004",
+              "3/18"
+            ],
+            [
+              "v1F ¹",
+              "1.495",
+              "6 [2–12]",
+              "0.005",
+              "6/18"
+            ],
+            [
+              "LIN5x ³",
+              "1.564",
+              "7 [4–8]",
+              "0.000",
+              "6/18"
+            ],
+            [
+              "EMB_Geneformer ³",
+              "1.792",
+              "8 [7–10]",
+              "0.000",
+              "4/18"
+            ],
+            [
+              "EMB_scGPT ³",
+              "1.840",
+              "9 [7–10]",
+              "0.000",
+              "4/18"
+            ],
+            [
+              "EMB_GenePT ³",
+              "1.935",
+              "10 [8–12]",
+              "0.000",
+              "2/18"
+            ],
+            [
+              "GRAPH ³",
+              "1.965",
+              "11 [9–12]",
+              "0.000",
+              "2/18"
+            ],
+            [
+              "MLP ³",
+              "2.080",
+              "12 [6–12]",
+              "0.000",
+              "2/18"
+            ]
+          ]
+        },
+        {
+          "k": 10,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "NET_ATT ³",
+              "0.549",
+              "1 [1–3]",
+              "0.842",
+              "17/18"
+            ],
+            [
+              "NET_MLP ³",
+              "0.586",
+              "2 [2–6]",
+              "0.004",
+              "16/18"
+            ],
+            [
+              "v1R ¹",
+              "0.607",
+              "3 [1–10]",
+              "0.145",
+              "15/18"
+            ],
+            [
+              "FS_LIN5x ³",
+              "0.660",
+              "4 [3–6]",
+              "0.002",
+              "13/18"
+            ],
+            [
+              "FS_LIN5_lam",
+              "0.661",
+              "5 [2–7]",
+              "0.007",
+              "12/18"
+            ],
+            [
+              "FS_GBM ³",
+              "0.670",
+              "6 [3–6]",
+              "0.000",
+              "13/18"
+            ],
+            [
+              "FS_EMB_Geneformer ³",
+              "0.710",
+              "7 [6–8]",
+              "0.000",
+              "12/18"
+            ],
+            [
+              "FS_GRAPH ³",
+              "0.715",
+              "8 [7–11]",
+              "0.000",
+              "12/18"
+            ],
+            [
+              "FS_EMB_GenePT ³",
+              "0.722",
+              "9 [7–11]",
+              "0.000",
+              "12/18"
+            ],
+            [
+              "FS_EMB_scGPT ³",
+              "0.727",
+              "10 [7–11]",
+              "0.000",
+              "12/18"
+            ],
+            [
+              "FS_MLP ³",
+              "0.752",
+              "11 [7–12]",
+              "0.000",
+              "13/18"
+            ],
+            [
+              "MID",
+              "1.000",
+              "12 [11–14]",
+              "0.000",
+              "0/18"
+            ],
+            [
+              "MIN",
+              "1.135",
+              "13 [12–15]",
+              "0.000",
+              "8/18"
+            ],
+            [
+              "v1O ²",
+              "1.196",
+              "14 [13–15]",
+              "0.000",
+              "2/18"
+            ],
+            [
+              "ADD",
+              "1.388",
+              "15 [13–16]",
+              "0.000",
+              "3/18"
+            ],
+            [
+              "v1F ¹",
+              "1.496",
+              "16 [13–16]",
+              "0.000",
+              "6/18"
+            ]
+          ]
+        },
+        {
+          "k": 20,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "NET_ATT ³",
+              "0.472",
+              "1 [1–4]",
+              "0.804",
+              "18/18"
+            ],
+            [
+              "v1R ¹",
+              "0.504",
+              "2 [1–8]",
+              "0.118",
+              "17/18"
+            ],
+            [
+              "NET_MLP ³",
+              "0.505",
+              "3 [2–7]",
+              "0.002",
+              "17/18"
+            ],
+            [
+              "FS_LIN5_lam",
+              "0.507",
+              "4 [1–6]",
+              "0.075",
+              "16/18"
+            ],
+            [
+              "FS_LIN5x ³",
+              "0.513",
+              "5 [2–6]",
+              "0.000",
+              "16/18"
+            ],
+            [
+              "FS_GBM ³",
+              "0.523",
+              "6 [2–6]",
+              "0.000",
+              "16/18"
+            ],
+            [
+              "FS_EMB_Geneformer ³",
+              "0.562",
+              "7 [7–9]",
+              "0.000",
+              "15/18"
+            ],
+            [
+              "FS_GRAPH ³",
+              "0.564",
+              "8 [6–9]",
+              "0.000",
+              "15/18"
+            ],
+            [
+              "FS_EMB_scGPT ³",
+              "0.569",
+              "9 [7–9]",
+              "0.000",
+              "15/18"
+            ],
+            [
+              "FS_EMB_GenePT ³",
+              "0.590",
+              "10 [10–11]",
+              "0.000",
+              "13/18"
+            ],
+            [
+              "FS_MLP ³",
+              "0.605",
+              "11 [10–11]",
+              "0.000",
+              "12/18"
+            ],
+            [
+              "MID",
+              "1.000",
+              "12 [12–13]",
+              "0.000",
+              "0/18"
+            ],
+            [
+              "MIN",
+              "1.135",
+              "13 [12–15]",
+              "0.000",
+              "8/18"
+            ],
+            [
+              "v1O ²",
+              "1.197",
+              "14 [13–15]",
+              "0.000",
+              "2/18"
+            ],
+            [
+              "ADD",
+              "1.388",
+              "15 [13–16]",
+              "0.000",
+              "3/18"
+            ],
+            [
+              "v1F ¹",
+              "1.496",
+              "16 [13–16]",
+              "0.000",
+              "6/18"
+            ]
+          ]
+        },
+        {
+          "k": 50,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "NET_ATT ³",
+              "0.410",
+              "1 [1–10]",
+              "0.717",
+              "18/18"
+            ],
+            [
+              "FS_LIN5_lam",
+              "0.427",
+              "2 [1–5]",
+              "0.168",
+              "18/18"
+            ],
+            [
+              "v1R ¹",
+              "0.429",
+              "3 [1–11]",
+              "0.075",
+              "18/18"
+            ],
+            [
+              "FS_GBM ³",
+              "0.431",
+              "4 [2–11]",
+              "0.006",
+              "18/18"
+            ],
+            [
+              "FS_MLP ³",
+              "0.433",
+              "5 [2–9]",
+              "0.023",
+              "18/18"
+            ],
+            [
+              "FS_LIN5x ³",
+              "0.433",
+              "6 [3–8]",
+              "0.002",
+              "17/18"
+            ],
+            [
+              "FS_GRAPH ³",
+              "0.435",
+              "7 [2–10]",
+              "0.008",
+              "17/18"
+            ],
+            [
+              "FS_EMB_GenePT ³",
+              "0.436",
+              "8 [3–11]",
+              "0.001",
+              "17/18"
+            ],
+            [
+              "NET_MLP ³",
+              "0.438",
+              "9 [2–11]",
+              "0.001",
+              "18/18"
+            ],
+            [
+              "FS_EMB_Geneformer ³",
+              "0.438",
+              "10 [6–11]",
+              "0.000",
+              "17/18"
+            ],
+            [
+              "FS_EMB_scGPT ³",
+              "0.438",
+              "11 [4–11]",
+              "0.000",
+              "17/18"
+            ],
+            [
+              "MID",
+              "1.000",
+              "12 [12–14]",
+              "0.000",
+              "0/18"
+            ],
+            [
+              "MIN",
+              "1.134",
+              "13 [12–15]",
+              "0.000",
+              "8/18"
+            ],
+            [
+              "v1O ²",
+              "1.196",
+              "14 [13–15]",
+              "0.000",
+              "2/18"
+            ],
+            [
+              "ADD",
+              "1.389",
+              "15 [13–16]",
+              "0.000",
+              "3/18"
+            ],
+            [
+              "v1F ¹",
+              "1.495",
+              "16 [13–16]",
+              "0.000",
+              "6/18"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track-1",
+      "title": "Main track: few-shot held-out lab — Locked test: 4 labs, 31 cell lines, 20 draws",
+      "label": "Locked test",
+      "group": "Main track: few-shot held-out lab",
+      "note": "These labs were never used to choose or tune any few-shot method. They were used in earlier zero-shot pilots, so the test is unused for this task but not pristine.\n",
+      "budgets": [
+        {
+          "k": 0,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MID",
+              "1.000",
+              "1 [1–4]",
+              "0.373",
+              "0/31"
+            ],
+            [
+              "GBM ³",
+              "1.083",
+              "2 [1–3]",
+              "0.077",
+              "15/31"
+            ],
+            [
+              "MIN",
+              "1.172",
+              "3 [1–6]",
+              "0.275",
+              "24/31"
+            ],
+            [
+              "ADD",
+              "1.265",
+              "4 [1–12]",
+              "0.262",
+              "1/31"
+            ],
+            [
+              "v1O ²",
+              "1.473",
+              "5 [4–9]",
+              "0.000",
+              "0/31"
+            ],
+            [
+              "LIN5x ³",
+              "1.604",
+              "6 [4–9]",
+              "0.000",
+              "11/31"
+            ],
+            [
+              "v1F ¹",
+              "1.658",
+              "7 [2–12]",
+              "0.013",
+              "5/31"
+            ],
+            [
+              "GRAPH ³",
+              "1.811",
+              "8 [5–9]",
+              "0.000",
+              "11/31"
+            ],
+            [
+              "EMB_Geneformer ³",
+              "1.889",
+              "9 [6–11]",
+              "0.000",
+              "8/31"
+            ],
+            [
+              "EMB_scGPT ³",
+              "1.951",
+              "10 [8–11]",
+              "0.000",
+              "4/31"
+            ],
+            [
+              "EMB_GenePT ³",
+              "1.993",
+              "11 [6–12]",
+              "0.000",
+              "11/31"
+            ],
+            [
+              "MLP ³",
+              "2.121",
+              "12 [4–12]",
+              "0.000",
+              "3/31"
+            ]
+          ]
+        },
+        {
+          "k": 10,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "v1R ¹",
+              "0.493",
+              "1 [1–3]",
+              "0.677",
+              "29/31"
+            ],
+            [
+              "NET_ATT ³",
+              "0.515",
+              "2 [1–3]",
+              "0.236",
+              "30/31"
+            ],
+            [
+              "NET_MLP ³",
+              "0.517",
+              "3 [1–3]",
+              "0.082",
+              "30/31"
+            ],
+            [
+              "FS_LIN5x ³",
+              "0.670",
+              "4 [4–6]",
+              "0.000",
+              "22/31"
+            ],
+            [
+              "FS_LIN5_lam",
+              "0.674",
+              "5 [4–9]",
+              "0.000",
+              "24/31"
+            ],
+            [
+              "FS_GBM ³",
+              "0.720",
+              "6 [6–10]",
+              "0.000",
+              "20/31"
+            ],
+            [
+              "FS_GRAPH ³",
+              "0.745",
+              "7 [6–9]",
+              "0.000",
+              "18/31"
+            ],
+            [
+              "FS_EMB_scGPT ³",
+              "0.758",
+              "8 [4–12]",
+              "0.000",
+              "18/31"
+            ],
+            [
+              "FS_EMB_GenePT ³",
+              "0.767",
+              "9 [7–11]",
+              "0.000",
+              "18/31"
+            ],
+            [
+              "FS_EMB_Geneformer ³",
+              "0.769",
+              "10 [8–12]",
+              "0.000",
+              "18/31"
+            ],
+            [
+              "FS_MLP ³",
+              "0.836",
+              "11 [11–13]",
+              "0.000",
+              "17/31"
+            ],
+            [
+              "MID",
+              "1.000",
+              "12 [6–13]",
+              "0.000",
+              "0/31"
+            ],
+            [
+              "MIN",
+              "1.172",
+              "13 [12–16]",
+              "0.000",
+              "24/31"
+            ],
+            [
+              "ADD",
+              "1.265",
+              "14 [2–16]",
+              "0.004",
+              "1/31"
+            ],
+            [
+              "v1O ²",
+              "1.473",
+              "15 [14–16]",
+              "0.000",
+              "0/31"
+            ],
+            [
+              "v1F ¹",
+              "1.658",
+              "16 [10–16]",
+              "0.001",
+              "5/31"
+            ]
+          ]
+        },
+        {
+          "k": 20,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "NET_MLP ³",
+              "0.424",
+              "1 [1–3]",
+              "0.343",
+              "30/31"
+            ],
+            [
+              "NET_ATT ³",
+              "0.425",
+              "2 [1–4]",
+              "0.386",
+              "30/31"
+            ],
+            [
+              "v1R ¹",
+              "0.435",
+              "3 [1–4]",
+              "0.268",
+              "30/31"
+            ],
+            [
+              "FS_LIN5x ³",
+              "0.456",
+              "4 [3–4]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_LIN5_lam",
+              "0.460",
+              "5 [4–5]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_GBM ³",
+              "0.499",
+              "6 [6–8]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_GRAPH ³",
+              "0.504",
+              "7 [6–8]",
+              "0.000",
+              "29/31"
+            ],
+            [
+              "FS_EMB_Geneformer ³",
+              "0.511",
+              "8 [7–10]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_EMB_GenePT ³",
+              "0.513",
+              "9 [8–10]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_EMB_scGPT ³",
+              "0.514",
+              "10 [8–11]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_MLP ³",
+              "0.529",
+              "11 [10–12]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "MID",
+              "1.000",
+              "12 [12–13]",
+              "0.000",
+              "0/31"
+            ],
+            [
+              "MIN",
+              "1.172",
+              "13 [12–16]",
+              "0.000",
+              "24/31"
+            ],
+            [
+              "ADD",
+              "1.265",
+              "14 [6–16]",
+              "0.004",
+              "1/31"
+            ],
+            [
+              "v1O ²",
+              "1.473",
+              "15 [14–16]",
+              "0.000",
+              "0/31"
+            ],
+            [
+              "v1F ¹",
+              "1.658",
+              "16 [13–16]",
+              "0.000",
+              "5/31"
+            ]
+          ]
+        },
+        {
+          "k": 50,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "NET_MLP ³",
+              "0.381",
+              "1 [1–3]",
+              "0.370",
+              "31/31"
+            ],
+            [
+              "NET_ATT ³",
+              "0.381",
+              "2 [1–4]",
+              "0.360",
+              "31/31"
+            ],
+            [
+              "v1R ¹",
+              "0.388",
+              "3 [1–11]",
+              "0.269",
+              "31/31"
+            ],
+            [
+              "FS_LIN5_lam",
+              "0.393",
+              "4 [3–5]",
+              "0.000",
+              "31/31"
+            ],
+            [
+              "FS_LIN5x ³",
+              "0.410",
+              "5 [3–5]",
+              "0.000",
+              "29/31"
+            ],
+            [
+              "FS_GRAPH ³",
+              "0.416",
+              "6 [4–11]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_EMB_scGPT ³",
+              "0.417",
+              "7 [6–9]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_EMB_GenePT ³",
+              "0.418",
+              "8 [6–9]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_EMB_Geneformer ³",
+              "0.419",
+              "9 [7–10]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_GBM ³",
+              "0.419",
+              "10 [6–11]",
+              "0.000",
+              "28/31"
+            ],
+            [
+              "FS_MLP ³",
+              "0.420",
+              "11 [9–11]",
+              "0.000",
+              "29/31"
+            ],
+            [
+              "MID",
+              "1.000",
+              "12 [12–13]",
+              "0.000",
+              "0/31"
+            ],
+            [
+              "MIN",
+              "1.172",
+              "13 [12–16]",
+              "0.000",
+              "24/31"
+            ],
+            [
+              "ADD",
+              "1.265",
+              "14 [12–16]",
+              "0.001",
+              "1/31"
+            ],
+            [
+              "v1O ²",
+              "1.473",
+              "15 [14–16]",
+              "0.000",
+              "0/31"
+            ],
+            [
+              "v1F ¹",
+              "1.658",
+              "16 [13–16]",
+              "0.000",
+              "5/31"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track-2",
+      "title": "Main track: few-shot held-out lab — Fresh screen: SHEN26, 2 cell lines, 50 draws",
+      "label": "Fresh screen",
+      "group": "Main track: few-shot held-out lab",
+      "note": "This 2026 screen was never used during development and is not one of the 22 labs.\n",
+      "budgets": [
+        {
+          "k": 0,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MID",
+              "1.000",
+              "1 [1–1]",
+              "1.000",
+              "0/2"
+            ],
+            [
+              "ADD",
+              "1.028",
+              "2 [2–2]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "v1O ²",
+              "1.081",
+              "3 [3–3]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "MIN",
+              "1.177",
+              "4 [4–4]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "v1F ¹",
+              "1.189",
+              "5 [5–5]",
+              "0.000",
+              "0/2"
+            ]
+          ]
+        },
+        {
+          "k": 5,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MID",
+              "1.000",
+              "1 [1–2]",
+              "0.745",
+              "0/2"
+            ],
+            [
+              "ADD",
+              "1.028",
+              "2 [2–3]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "v1R ¹",
+              "1.054",
+              "3 [1–4]",
+              "0.255",
+              "1/2"
+            ],
+            [
+              "v1O ²",
+              "1.081",
+              "4 [3–4]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "MIN",
+              "1.177",
+              "5 [5–6]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "v1F ¹",
+              "1.189",
+              "6 [6–7]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "FS_LIN5_lam",
+              "1.350",
+              "7 [5–7]",
+              "0.000",
+              "0/2"
+            ]
+          ]
+        },
+        {
+          "k": 20,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "v1R ¹",
+              "0.941",
+              "1 [1–1]",
+              "1.000",
+              "2/2"
+            ],
+            [
+              "MID",
+              "1.000",
+              "2 [2–3]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "ADD",
+              "1.029",
+              "3 [3–4]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "FS_LIN5_lam",
+              "1.046",
+              "4 [2–5]",
+              "0.000",
+              "1/2"
+            ],
+            [
+              "v1O ²",
+              "1.081",
+              "5 [4–5]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "MIN",
+              "1.177",
+              "6 [6–6]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "v1F ¹",
+              "1.189",
+              "7 [7–7]",
+              "0.000",
+              "0/2"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track-3",
+      "title": "Shipped data only: 17 labs, reproduced by `pytest` — dev: 16 labs, 16 units",
+      "label": "dev",
+      "group": "Shipped data only: 17 labs, reproduced by `pytest`",
+      "note": "",
+      "budgets": [
+        {
+          "k": 0,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MID",
+              "1.000",
+              "1 [1–2]",
+              "0.850",
+              "0/16"
+            ],
+            [
+              "MIN",
+              "1.199",
+              "2 [1–3]",
+              "0.139",
+              "7/16"
+            ],
+            [
+              "ADD",
+              "1.357",
+              "3 [2–3]",
+              "0.011",
+              "3/16"
+            ]
+          ]
+        },
+        {
+          "k": 10,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "FS_LIN5_lam",
+              "0.660",
+              "1 [1–1]",
+              "0.993",
+              "10/16"
+            ],
+            [
+              "MID",
+              "1.000",
+              "2 [2–3]",
+              "0.005",
+              "0/16"
+            ],
+            [
+              "MIN",
+              "1.200",
+              "3 [2–4]",
+              "0.000",
+              "7/16"
+            ],
+            [
+              "ADD",
+              "1.357",
+              "4 [3–4]",
+              "0.003",
+              "3/16"
+            ]
+          ]
+        },
+        {
+          "k": 20,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "FS_LIN5_lam",
+              "0.492",
+              "1 [1–1]",
+              "1.000",
+              "14/16"
+            ],
+            [
+              "MID",
+              "1.000",
+              "2 [2–3]",
+              "0.000",
+              "0/16"
+            ],
+            [
+              "MIN",
+              "1.199",
+              "3 [2–4]",
+              "0.000",
+              "7/16"
+            ],
+            [
+              "ADD",
+              "1.357",
+              "4 [3–4]",
+              "0.000",
+              "3/16"
+            ]
+          ]
+        },
+        {
+          "k": 50,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "FS_LIN5_lam",
+              "0.416",
+              "1 [1–1]",
+              "1.000",
+              "16/16"
+            ],
+            [
+              "MID",
+              "1.000",
+              "2 [2–3]",
+              "0.000",
+              "0/16"
+            ],
+            [
+              "MIN",
+              "1.198",
+              "3 [2–4]",
+              "0.000",
+              "7/16"
+            ],
+            [
+              "ADD",
+              "1.357",
+              "4 [3–4]",
+              "0.000",
+              "3/16"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track-4",
+      "title": "Shipped data only: 17 labs, reproduced by `pytest` — test: 1 labs, 1 units",
+      "label": "test",
+      "group": "Shipped data only: 17 labs, reproduced by `pytest`",
+      "note": "",
+      "budgets": [
+        {
+          "k": 0,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MIN",
+              "0.633",
+              "1 [1–1]",
+              "1.000",
+              "1/1"
+            ],
+            [
+              "MID",
+              "1.000",
+              "2 [2–2]",
+              "0.000",
+              "0/1"
+            ],
+            [
+              "ADD",
+              "1.745",
+              "3 [3–3]",
+              "0.000",
+              "0/1"
+            ]
+          ]
+        },
+        {
+          "k": 10,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "FS_LIN5_lam",
+              "0.278",
+              "1 [1–1]",
+              "1.000",
+              "1/1"
+            ],
+            [
+              "MIN",
+              "0.633",
+              "2 [2–2]",
+              "0.000",
+              "1/1"
+            ],
+            [
+              "MID",
+              "1.000",
+              "3 [3–3]",
+              "0.000",
+              "0/1"
+            ],
+            [
+              "ADD",
+              "1.745",
+              "4 [4–4]",
+              "0.000",
+              "0/1"
+            ]
+          ]
+        },
+        {
+          "k": 20,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "FS_LIN5_lam",
+              "0.142",
+              "1 [1–1]",
+              "1.000",
+              "1/1"
+            ],
+            [
+              "MIN",
+              "0.633",
+              "2 [2–2]",
+              "0.000",
+              "1/1"
+            ],
+            [
+              "MID",
+              "1.000",
+              "3 [3–3]",
+              "0.000",
+              "0/1"
+            ],
+            [
+              "ADD",
+              "1.745",
+              "4 [4–4]",
+              "0.000",
+              "0/1"
+            ]
+          ]
+        },
+        {
+          "k": 50,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "FS_LIN5_lam",
+              "0.122",
+              "1 [1–1]",
+              "1.000",
+              "1/1"
+            ],
+            [
+              "MIN",
+              "0.633",
+              "2 [2–2]",
+              "0.000",
+              "1/1"
+            ],
+            [
+              "MID",
+              "1.000",
+              "3 [3–3]",
+              "0.000",
+              "0/1"
+            ],
+            [
+              "ADD",
+              "1.745",
+              "4 [4–4]",
+              "0.000",
+              "0/1"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "track-5",
+      "title": "Shipped data only: 17 labs, reproduced by `pytest` — fresh: 1 labs, 2 units",
+      "label": "fresh",
+      "group": "Shipped data only: 17 labs, reproduced by `pytest`",
+      "note": "",
+      "budgets": [
+        {
+          "k": 0,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MID",
+              "1.000",
+              "1 [1–1]",
+              "1.000",
+              "0/2"
+            ],
+            [
+              "ADD",
+              "1.028",
+              "2 [2–2]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "MIN",
+              "1.177",
+              "3 [3–3]",
+              "0.000",
+              "0/2"
+            ]
+          ]
+        },
+        {
+          "k": 5,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MID",
+              "1.000",
+              "1 [1–1]",
+              "1.000",
+              "0/2"
+            ],
+            [
+              "ADD",
+              "1.028",
+              "2 [2–2]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "MIN",
+              "1.177",
+              "3 [3–4]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "FS_LIN5_lam",
+              "1.350",
+              "4 [3–4]",
+              "0.000",
+              "0/2"
+            ]
+          ]
+        },
+        {
+          "k": 20,
+          "headers": [
+            "method",
+            "ratio vs MID",
+            "rank [95% CI]",
+            "P(rank 1)",
+            "units better than MID"
+          ],
+          "rows": [
+            [
+              "MID",
+              "1.000",
+              "1 [1–2]",
+              "0.773",
+              "0/2"
+            ],
+            [
+              "ADD",
+              "1.029",
+              "2 [2–3]",
+              "0.000",
+              "0/2"
+            ],
+            [
+              "FS_LIN5_lam",
+              "1.046",
+              "3 [1–3]",
+              "0.227",
+              "1/2"
+            ],
+            [
+              "MIN",
+              "1.177",
+              "4 [4–4]",
+              "0.000",
+              "0/2"
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "defaultTrack": "track-1",
+  "leaderboardNotes": "\nLower ratios mean lower error. Each ratio compares a method's MSE with MID. The scorer averages log ratios over draws, then cell lines within each lab, then labs, and exponentiates the result. Each lab has equal weight.\n\nRank intervals are 95% bootstrap intervals from 2,000 replicates with seed 0. Development resamples labs; the test and fresh tracks resample labs, then cell lines. \"Units better than MID\" counts labs on development and cell lines on test and fresh.\n\n## Where the rows come from\n\n- Unmarked methods are built-in baselines you can re-score with `opal-bench-score fewshot`.\n- ¹ marks Opal rows. Re-score them with `--opal-v1 DIR` and the public growth checkpoint.\n- ² marks the official Opal API with MID fallback. It abstains on 85–99% of pairs and needs the separate Opal package.\n- ³ marks cross-lab learners from the original run. Each had the same tuning budget, grouped four-fold cross-validation over training labs and a few-shot ridge head on [1, lo, hi, lo·hi, f] for FS_* methods. Their per-draw rows are published; their training code isn't included here.\n\n## Method names\n\nADD = sa + sb. MIN = min(sa, sb). MID = ½(ADD + MIN). FS_LIN5_lam fits a ridge with λ = 0.1 to the k target pairs, using [1, lo, hi, lo+hi, lo·hi, |hi−lo|].\n\nv1F uses frozen Opal weights; v1R refits that architecture to the k calibration pairs; v1O calls the official API. LIN5x, GBM and MLP use singles, STRING and paralog features. EMB_* uses frozen GenePT, Geneformer or scGPT embeddings, while GRAPH uses GEARS-style STRING propagation. NET_ATT is an 844,801-parameter set-attention meta-learner; NET_MLP is a 582,657-parameter residual MLP.\n\nThe first tables cover all 22 labs. Shipped-data tables appear separately below. Rebuild the full leaderboard tables from the published error rows with `opal-bench-score table leaderboard/rows.csv.gz`.\n\n",
+  "negative": "\nThese results record experiments that failed their stated criteria. Every registration was hash-stamped before scoring; corrections were added as errata rather than edits. Confirmation n used the 100 · (1 − 0.025/n) percentile, following the registered Bonferroni-type schedule.\n\n## No target pairs: MID remains the reference to beat\n\nOn the locked test at k = 0, every learner loses to MID. Errors range from 1.08× MID for gradient boosting to 2.12× for the MLP; foundation-model embeddings score 1.89–1.99×. On development labs, the range is 1.09–2.08×.\n\nA rule-anchored zero-shot model also failed. It learned a per-lab mixing weight between min and additive, with atlas, STRING and paralog corrections, but scored 1.25× MID and was rejected.\n\n## More features and larger models did not establish a clear advantage\n\nFrozen GenePT, Geneformer and scGPT embeddings, and GEARS-style STRING propagation, each received a few-shot head. At k = 10 and 20, they performed worse than a six-coefficient ridge fitted only to the target pairs on both development labs and the locked test. At locked-test k = 20, their ratios were 0.50–0.53 against the ridge's 0.460.\n\nThe 582,657- and 844,801-parameter networks scored 0.424 and 0.425 on that test. The refitted Opal architecture scored 0.435. Their rank intervals overlap, so the leaderboard doesn't separate them cleanly.\n\n## Screen transfer and pair selection failed\n\nFrozen Opal, trained on K562 CRISPRi, scored 1.50× MID on development labs and 1.66× on the locked test. The official API abstained on 85–99% of pairs.\n\nATLAS adds half a pair's mean cross-lab interaction to MID. That raised held-out-lab MSE to 1.29× MID, although it improved strong-negative ranking, with AUROC 0.795 against 0.708. Bayesian D-optimal selection, stratification by singles and atlas-uncertainty selection each performed worse than random calibration-pair selection on development labs.\n\nAcross 93 lab pairs, the interaction term y − additive had median between-lab Spearman correlation 0.21, with interval [0.13, 0.28]. A method has to transfer across sources that often disagree about the target itself.\n\n## Registered experiments\n\nThere were 25 registrations and 18 confirmations; 3 confirmations passed. The rows below preserve the recorded questions, hash prefixes and outcomes.\n\n| # | Pilot | Stage | Registration sha256 (prefix) | Question | Outcome |\n|---|---|---|---|---|---|\n| 1 | 1 | dev | a4891082 | K562→Jurkat residual transfer, singles only | FAIL |\n| 2 | 1b | dev | eaf8c414 | same, fixed penalty | FAIL |\n| 3 | 2 | dev | 0eb0db35 | pooled 7-parameter rule, leave-one-lab-out | FAIL (73% worse than min) |\n| 4 | 3c | dev | 944dcc31 | singles-feature rule selection | FAIL |\n| 5 | 3a | dev | 6276b58f | 25/50 target labels to mix rules | FAIL |\n| 6 | 3b | dev | ebd3ee19 | new Ito lines, MLP + residual | FAIL |\n| 7 | 4 | dev | 358b5b0d | empirical-Bayes shrinkage of carried-over interactions | FAIL |\n| 8 | 5 | dev | 62e772c6 | EB-N / EB-SEL on Shen 2017 | FAIL |\n| 9 | 6 | conf #1, #2 | bf4efa7b | ATLAS-MID on Dede + CHyMErA; cross-lab ρ > 0 in every line | **#1 PASS**; #2 FAIL |\n| 10 | 7 | conf #3 | 665367cf | ATLAS-MID on SPIDR | FAIL (MID 1.91× better) |\n| 11 | 8 | conf #4 | c74da6f3 | ATLAS-MID in in4mer, AbbVie, SLC | FAIL |\n| 12 | 8 | conf #5 | c74da6f3 | CRISPRi follows min (Du 2017) | **PASS** (min 0.466× MID's error) |\n| 13 | 8 | conf #6 | c74da6f3 | atlas improves SL AUROC | FAIL |\n| 14 | 9 | conf #7 | 1cc1c8e8 | ATLAS-MID beats 7 baselines in Klingbeil 2024 | FAIL |\n| 15 | 9 | conf #8 | 1cc1c8e8 | Klingbeil between-lab ρ < within-lab ρ | FAIL |\n| 16 | 9 | conf #9 | 1cc1c8e8 | Klingbeil between-lab ρ < K562 replicate ceiling | **PASS** (Δ 0.265, lower bound 0.028) |\n| 17 | 9 | conf #10 | 1cc1c8e8 | same-cell overlap raises agreement by < 0.10 | FAIL (inconclusive) |\n| 18 | 10 | conf #11 | 880ba658 | per-line rescoring (gRES) raises between-lab ρ (Burgold 2025) | FAIL |\n| 19 | 10 | conf #12 | 880ba658 | STRING-linked pairs agree better across labs | FAIL (direction held in 9/10 labs) |\n| 20 | 10 | conf #13 | 880ba658 | paralog identity → more negative interaction | FAIL |\n| 21 | 11 | conf #14 | 05eecacc | lead 1 sign test (SCHEMATIC, Han) | FAIL (low power) |\n| 22 | 11 | conf #15 | 05eecacc | lead 1 pooled | FAIL (well powered; T −0.007) |\n| 23 | 11 | conf #16 | 05eecacc | lead 1 pooled incl. Burgold | FAIL |\n| 24 | 12 | conf #17 | a52e3857 | foundation-model embedding SGC-MLP ranks singles-free interactions in new screens | FAIL (Δρ +0.006, p 0.068, well powered) |\n| 25 | 12 | conf #18 | a52e3857 | same, STRING ≥ 700 pairs | FAIL |\n\n## Exploratory experiments\n\nThese experiments weren't registered and should be read separately from the confirmation table.\n\n- E9 tested prior-based, graph-kNN, ridge and embedding predictors. Each lost to MID and min in leave-one-lab-out evaluation, at 1.26–1.61× MID MSE.\n- E10 removed the parameter cap and tested LightGBM, a 137k-parameter MLP, SGC-GNN and ridge on frozen GenePT, Geneformer V2-104M and scGPT embeddings. Each lost to MID and min, at 1.18–2.79× MID.\n- E10b found a small singles-free interaction-ranking signal, with median correlation 0.026, carried entirely by paralog and STRING pairs.\n- E10c found that gene-feature classifiers lost to the zero-fit additive − min rule on strong negative interactions in 12–13/19 labs. On held-out genes, gene-feature models were 1.31–1.41× worse than an in-lab five-parameter linear rule, so their random-split gains didn't carry over to unseen genes.\n- E10d rank-averaged the rule and a gene classifier. It didn't beat both inputs.\n",
+  "licenses": "\nThis audit records the source terms checked on 25 Nov 2026. It uses the Europe PMC article records, figshare and Zenodo deposits, STRING's licensing page and the Ensembl disclaimer. If an article and its deposit disagree, Opal-Bench follows the stricter terms.\n\n\"Raw\" means the published counts or phenotype tables. \"Derived\" means the harmonized benchmark tables. The table records the redistribution decision for each source; it doesn't replace that source's license.\n\n| Opal-Bench id | Study | Modality | Primary record | Licence found | Redistribute derived table? | In this repo |\n|---|---|---|---|---|---|---|\n| WONG16, SHEN17, NAJM18, ZHAO18, HORLBECK18, THOMPSON21, DIEHL21, PARRISH21, ITO21, TANG22 | 10 studies via SLKB (Gökbağ et al., NAR 2024) | Cas9 / Cas12a / CRISPRi | figshare 10.6084/m9.figshare.22902839 | **GPL-3.0+** (data deposit) | yes, GPL-3.0+ with attribution | data |\n| CHYMERA20 | Gonatopoulos-Pournatzis 2020, Nat Biotechnol | Cas9 + Cas12a hybrid | GEO GSE144281 | GEO public data; NCBI places no restrictions and the submitters claim none | yes | data |\n| SPIDR25 | Fielden 2025, Nature | CRISPRi | Suppl. Table 8, PMC12018271 | **CC BY 4.0** | yes | data |\n| IN4MER24 | Esmaeili Anvar 2024, Nat Commun | enAsCas12a | Suppl. Data 6, PMC11055879 | **CC BY 4.0** | yes | data |\n| HARLE25 | Harle 2025, Genome Biol | Cas9 | Additional file 1, PMC12445041 | **CC BY 4.0** | yes | data |\n| BURGOLD25 | Burgold 2025, Nat Commun | Cas9 | Zenodo 10.5281/zenodo.17191951; PMC12808759 | **CC BY 4.0** (article and deposit) | yes | data (+ test cell line) |\n| DEDE20 | Dede 2020, Genome Biol | enCas12a | figshare 13101142; PMC7558751 | CC BY 4.0 (article); CC BY + CC0 (deposit) | yes | data |\n| SLC25 | Wolf 2025, Mol Syst Biol | Cas9 | Dataset EV3, PMC12130552 | **CC BY 4.0** | yes | data |\n| ABBVIE25 | Cell Rep 2025 | enAsCas12a | Table S2, 10.1016/j.celrep.2025.116512 | **CC BY-NC-ND 4.0** | **no** (no derivatives) | excluded |\n| KLINGBEIL24 | Klingbeil 2024, Cancer Discov | paired SpCas9 | AACR figshare 27938723; PMC11609825 | article **CC BY-NC-ND 4.0**; figshare item says CC BY → conflict, stricter applied | **no** | excluded |\n| SCHEMATIC25 | Fong 2025, Nat Genet | Cas9 dual guide | Suppl. Data 1, 10.1038/s41588-024-01971-9 | publisher terms (no open licence) | **no** | excluded |\n| DU17 | Du 2017, Nat Methods | CRISPRi | Suppl. Data Set 3, 10.1038/nmeth.4286 | publisher terms | **no** | excluded |\n| HAN17 | Han 2017, Nat Biotechnol | Cas9 double knockout | Suppl. Table 4, 10.1038/nbt.3834 | publisher terms | **no** | excluded |\n| SHEN26 (fresh) | Shen 2026, Natl Sci Rev | Cas9 dual guide | PMC13715443 (10.1093/nsr/nwag565), Table S2 raw counts, rescored | **CC BY 4.0** | yes | data/fresh |\n| Pair priors | STRING v12 combined score; Ensembl Compara paralog identity | – | string-db.org licensing; Ensembl disclaimer | STRING: attribution (CC BY terms); Ensembl: no restrictions | yes | bench_priors |\n\n## What ships here\n\nThe lab-level table contains 334,669 pairs from 17 labs. Fresh SHEN26 and the BURGOLD25 test cell-line table ship separately. Each data file keeps its source terms, including GPL-3.0-or-later requirements for the SLKB-derived files.\n\nABBVIE25, KLINGBEIL24, SCHEMATIC25, DU17 and HAN17 are excluded. Their raw-source preprocessing scripts aren't bundled.\n\n`leaderboard/rows.csv.gz` contains per-draw MSE summaries for all 22 labs. Those aggregate errors aren't the underlying screen data.\n\nThe [MIT license](https://github.com/TheTinyIntelLab/opal-bench/blob/main/LICENSE) covers the original code. It doesn't change the data licenses. Cite the original sources you use and follow their terms when redistributing derived tables.\n"
+}

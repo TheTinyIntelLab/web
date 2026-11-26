@@ -11,7 +11,6 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty"
 import { getPosts, formatDate } from "@/src/sanity/posts"
-import { site } from "@/src/lib/site"
 
 const title = "Blog & announcements"
 const description =
@@ -21,15 +20,6 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical: "/blog" },
-  openGraph: {
-    type: "website",
-    siteName: site.name,
-    title,
-    description,
-    url: "/blog",
-    images: [site.socialImage],
-  },
-  twitter: { card: "summary_large_image" },
 }
 export const revalidate = 60
 export default async function Blog() {

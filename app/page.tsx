@@ -18,15 +18,6 @@ import { JsonLd } from "@/components/json-ld"
 
 export const metadata: Metadata = {
   alternates: { canonical: site.url },
-  openGraph: {
-    type: "website",
-    siteName: site.name,
-    title: site.title,
-    description: site.description,
-    url: site.url,
-    images: [site.socialImage],
-  },
-  twitter: { card: "summary_large_image" },
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
 }
 

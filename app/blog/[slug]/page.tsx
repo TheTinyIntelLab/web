@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, ResolvingMetadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -24,16 +24,19 @@ export async function generateStaticParams() {
   return posts.map(({ slug }) => ({ slug }))
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { slug } = await params
   const post = await getPost(slug)
   if (!post) notFound()
-  const cover = post.coverImage && imageUrl(post.coverImage, 1200)
   return {
     title: post.title,
     description: post.summary,
     alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
+      ...(await parent).openGraph,
       type: "article",
       siteName: site.name,
       title: post.title,
@@ -41,11 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `/blog/${post.slug}`,
       publishedTime: post.publishedAt,
       modifiedTime: postModificationDate(post),
-      images: cover
-        ? [{ url: cover, alt: post.coverImage?.alt }]
-        : [site.socialImage],
     },
-    twitter: { card: "summary_large_image" },
   }
 }
 export default async function Article({ params }: Props) {

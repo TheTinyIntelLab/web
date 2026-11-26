@@ -1,5 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -11,6 +13,7 @@ const groups = [
     links: [{ label: "Opal", href: "/#opal" }],
   },
   { title: "Updates", links: [{ label: "Blog", href: "/blog" }] },
+  { title: "Others", links: [{ label: "Opal-Bench", href: "/opal-bench" }] },
   {
     title: "The lab",
     links: [
@@ -90,6 +93,29 @@ export function SiteShell({
           >
             Blog
           </Button>
+          <details className="group relative">
+            <summary className="flex min-h-9 cursor-pointer list-none items-center rounded-md px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">
+              Others{" "}
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                size={14}
+                strokeWidth={1.5}
+                aria-hidden="true"
+                className="ml-2"
+              />
+            </summary>
+            <div className="absolute right-0 z-20 mt-2 min-w-40 rounded-md border bg-popover p-1 text-popover-foreground shadow-sm">
+              <Button
+                nativeButton={false}
+                role="link"
+                variant="ghost"
+                render={<Link href="/opal-bench" />}
+                className="w-full justify-start"
+              >
+                Opal-Bench
+              </Button>
+            </div>
+          </details>
         </nav>
       </header>
       <main id="main-content" tabIndex={-1}>
@@ -97,7 +123,7 @@ export function SiteShell({
       </main>
       <footer className="mx-auto mt-18 max-w-[1100px] px-2 pb-7 sm:mt-25 sm:px-7">
         <Separator />
-        <div className="grid grid-cols-2 gap-3 pt-9 pb-12 sm:grid-cols-4 sm:gap-8">
+        <div className="grid grid-cols-2 gap-3 pt-9 pb-12 sm:grid-cols-5 sm:gap-8">
           {groups.map((group) => (
             <div key={group.title} className="flex flex-col items-start gap-1">
               <h2 className="px-3 pb-3 text-[13px] font-medium">
