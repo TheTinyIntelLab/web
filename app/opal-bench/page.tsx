@@ -13,7 +13,16 @@ import { OpalLeaderboard } from "@/components/opal-leaderboard"
 import data from "@/src/content/opal-bench.json"
 
 const description =
-  "Predict combinatorial CRISPR growth in a lab you have never seen. Explore the benchmark, results, data and submission protocol."
+  "Test how well a method predicts CRISPR pair growth in a new lab. Compare the results, get the data or submit your own method."
+const sectionTitles: Record<string, string> = {
+  install: "Run it locally",
+  results: "What worked and what didn't",
+  "submit-a-method": "Submit your method",
+  limitations: "What these scores can tell you",
+  "documentation-and-repository": "More in the repository",
+  license: "Code and data licences",
+  citation: "Cite Opal-Bench",
+}
 export const metadata: Metadata = {
   title: "Opal-Bench",
   description,
@@ -34,7 +43,7 @@ export default function OpalBench() {
               href={data.repo}
               className="inline-flex items-center gap-1 underline"
             >
-              GitHub{" "}
+              Code on GitHub{" "}
               <HugeiconsIcon
                 icon={ArrowUpRight01Icon}
                 size={16}
@@ -46,7 +55,7 @@ export default function OpalBench() {
               href="https://huggingface.co/datasets/TheTinyIntelLab/opal-bench"
               className="inline-flex items-center gap-1 underline"
             >
-              Dataset on Hugging Face{" "}
+              Get the dataset{" "}
               <HugeiconsIcon
                 icon={ArrowUpRight01Icon}
                 size={16}
@@ -71,11 +80,15 @@ export default function OpalBench() {
             Synced from GitHub on{" "}
             <time dateTime={data.syncedAt}>{data.syncedAt}</time> ·{" "}
             <a href={`${data.repo}/commit/${data.sha}`} className="underline">
-              Source snapshot
+              View source commit
             </a>
           </p>
         </header>
-        <ArticleBody body={data.intro.split(/\r?\n\r?\n/)[0]} />
+        <p className="text-[17px] leading-relaxed sm:text-lg">
+          You get the screen&apos;s single-gene scores and a few measured pairs,
+          then predict the rest. Training uses other labs, so the score tests
+          how well your method transfers to a new screen.
+        </p>
         <nav
           aria-label="On this page"
           className="mt-8 flex flex-wrap gap-x-5 gap-y-3 border-y py-5 text-xs text-muted-foreground"
@@ -87,7 +100,7 @@ export default function OpalBench() {
             Leaderboard
           </a>
           <a href="#details" className="hover:text-foreground hover:underline">
-            Details and documentation
+            About the benchmark
           </a>
         </nav>
         <section id="leaderboard" className="mt-10 scroll-mt-8">
@@ -99,7 +112,7 @@ export default function OpalBench() {
         </section>
         <section id="details" className="mt-12 scroll-mt-8">
           <h2 className="mb-6 text-lg font-medium tracking-tight">
-            Details and documentation
+            About the benchmark
           </h2>
           <Accordion multiple>
             {data.sections.map((section) => (
@@ -108,21 +121,25 @@ export default function OpalBench() {
                 id={section.id}
                 value={section.id}
               >
-                <AccordionTrigger>{section.title}</AccordionTrigger>
+                <AccordionTrigger>
+                  {sectionTitles[section.id] ?? section.title}
+                </AccordionTrigger>
                 <AccordionContent>
                   <ArticleBody body={section.body} />
                   {section.id === "results" && (
                     <Accordion multiple className="mt-6">
                       <AccordionItem value="provenance">
                         <AccordionTrigger>
-                          Metric and method provenance
+                          How the methods were scored
                         </AccordionTrigger>
                         <AccordionContent>
                           <ArticleBody body={data.leaderboardNotes} />
                         </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="negative-results">
-                        <AccordionTrigger>Negative results</AccordionTrigger>
+                        <AccordionTrigger>
+                          Experiments that didn&apos;t work
+                        </AccordionTrigger>
                         <AccordionContent>
                           <ArticleBody body={data.negative} />
                         </AccordionContent>
@@ -131,12 +148,7 @@ export default function OpalBench() {
                   )}
                   {section.id === "data-and-reproduction" && (
                     <div className="mt-6">
-                      <ArticleBody
-                        body={data.intro
-                          .split(/\r?\n\r?\n/)
-                          .slice(1)
-                          .join("\n\n")}
-                      />
+                      <ArticleBody body={data.intro} />
                     </div>
                   )}
                   {section.id === "license" && (

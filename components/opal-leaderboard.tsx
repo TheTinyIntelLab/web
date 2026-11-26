@@ -96,7 +96,7 @@ export function OpalLeaderboard({
         </p>
       )}
       <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
-        Showing {rows.length} of {budget.rows.length} methods · Lower ratios are
+        Showing {rows.length} of {budget.rows.length} methods. Lower error is
         better.
       </p>
       <div className="mt-4">
@@ -165,10 +165,10 @@ export function OpalLeaderboard({
         aria-controls="opal-leaderboard-results"
         onClick={() => setExpanded(!expanded)}
       >
-        {expanded ? "Show summary" : "Show full leaderboard"}
+        {expanded ? "Show fewer results" : "See all results"}
       </Button>
       <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:hidden">
-        Scroll horizontally to see all columns.
+        Scroll sideways to see every column.
       </p>
     </div>
   )
