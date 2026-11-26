@@ -112,7 +112,7 @@ function CodeBlockContent({
     >
       <code
         data-slot="code-block-code"
-        className="grid min-h-lh min-w-max grid-cols-[auto_1fr] content-start [&>[data-empty]+[data-empty]]:hidden"
+        className="grid min-h-lh min-w-max grid-cols-[auto_1fr] content-start"
       >
         {children}
       </code>
@@ -125,7 +125,6 @@ function CodeBlockLine({ children }: { children: React.ReactNode[] | string }) {
   return (
     <span
       data-slot="code-block-line"
-      data-empty={empty || undefined}
       className="relative col-span-2 -mx-4 grid min-h-lh grid-cols-subgrid gap-x-3 px-4 [counter-increment:line] before:min-w-6 before:text-end before:text-muted-foreground before:content-[counter(line)] before:select-none supports-[content:counter(line)_/_'']:before:content-[counter(line)_/_'']"
     >
       <span data-slot="code-block-line-content" className="min-w-0">

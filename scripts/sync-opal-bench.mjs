@@ -65,6 +65,7 @@ for (const line of leaderboard.split(/\r?\n/)) {
     } else {
       if (
         cells.length !== budget.headers.length ||
+        cells[1] === "" ||
         !Number.isFinite(Number(cells[1]))
       ) {
         throw new Error(`Invalid leaderboard row: ${line}`)

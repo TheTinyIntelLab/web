@@ -80,8 +80,14 @@ export function ArticleBody({
           thead: ({ children }) => <TableHeader>{children}</TableHeader>,
           tbody: ({ children }) => <TableBody>{children}</TableBody>,
           tr: ({ children }) => <TableRow>{children}</TableRow>,
-          th: ({ children }) => <TableHead scope="col">{children}</TableHead>,
-          td: ({ children }) => <TableCell>{children}</TableCell>,
+          th: ({ children, style }) => (
+            <TableHead scope="col" style={style}>
+              {children}
+            </TableHead>
+          ),
+          td: ({ children, style }) => (
+            <TableCell style={style}>{children}</TableCell>
+          ),
           hr: () => <Separator />,
         }}
       >
