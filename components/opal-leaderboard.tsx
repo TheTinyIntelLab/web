@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
-import { Button } from "@/components/ui/button"
 import {
   Table,
   TableHeader,
@@ -30,19 +29,15 @@ export function OpalLeaderboard({
 }) {
   const [trackId, setTrackId] = useState(defaultTrack)
   const [k, setK] = useState(20)
-  const [expanded, setExpanded] = useState(false)
   const track = tracks.find((item) => item.id === trackId)!
   const budget = track.budgets.find((item) => item.k === k)!
-  const rows = expanded
-    ? budget.rows
-    : budget.rows.filter((row, index) => index < 5 || row[0] === "MID")
-  const headers = expanded ? budget.headers : budget.headers.slice(0, 3)
+  const { rows, headers } = budget
 
   return (
-    <div className="my-8 min-w-0 font-heading text-sm">
+    <div className="my-8 min-w-0 text-[17px] leading-relaxed sm:text-lg">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
         <label
-          className="flex min-w-0 flex-1 flex-col gap-2"
+          className="flex min-w-0 flex-1 flex-col gap-2 font-heading text-sm"
           htmlFor="opal-track"
         >
           Track
@@ -71,7 +66,10 @@ export function OpalLeaderboard({
             ))}
           </NativeSelect>
         </label>
-        <label className="flex flex-col gap-2" htmlFor="opal-budget">
+        <label
+          className="flex flex-col gap-2 font-heading text-sm"
+          htmlFor="opal-budget"
+        >
           Measured pairs, k
           <NativeSelect
             id="opal-budget"
@@ -87,23 +85,15 @@ export function OpalLeaderboard({
           </NativeSelect>
         </label>
       </div>
-      <p className="mt-4 text-sm leading-relaxed">
-        {track.title.split(" — ").at(-1)}
-      </p>
-      {track.note && (
-        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-          {track.note}
-        </p>
-      )}
-      <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
-        Showing {rows.length} of {budget.rows.length} methods. Lower error is
-        better.
+      <p className="mt-4">{track.title.split(" — ").at(-1)}</p>
+      {track.note && <p className="mt-4 text-muted-foreground">{track.note}</p>}
+      <p className="mt-4 text-base text-muted-foreground" aria-live="polite">
+        {rows.length} methods. Lower error is better.
       </p>
       <div className="mt-4">
         <Table
           id="opal-leaderboard-results"
-          data-expanded={expanded}
-          className="w-full min-w-[420px] border-collapse text-left text-xs tabular-nums data-[expanded=true]:min-w-[640px] sm:text-sm"
+          className="w-full min-w-[640px] border-collapse text-left font-heading text-base tabular-nums"
         >
           <TableCaption className="sr-only">
             {track.title}, k = {k}. Error relative to MID and bootstrap rank
@@ -128,7 +118,7 @@ export function OpalLeaderboard({
                 key={row[0]}
                 className={row[0] === "MID" ? "border-b bg-muted" : "border-b"}
               >
-                {row.slice(0, headers.length).map((cell, index) => {
+                {row.map((cell, index) => {
                   const text =
                     index === 0
                       ? cell.replace(
@@ -158,16 +148,7 @@ export function OpalLeaderboard({
           </TableBody>
         </Table>
       </div>
-      <Button
-        variant="ghost"
-        className="mt-3"
-        aria-expanded={expanded}
-        aria-controls="opal-leaderboard-results"
-        onClick={() => setExpanded(!expanded)}
-      >
-        {expanded ? "Show fewer results" : "See all results"}
-      </Button>
-      <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:hidden">
+      <p className="mt-3 font-heading text-sm text-muted-foreground sm:hidden">
         Scroll sideways to see every column.
       </p>
     </div>
