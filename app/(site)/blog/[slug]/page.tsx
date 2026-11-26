@@ -30,12 +30,18 @@ export async function generateMetadata(
   const { slug } = await params
   const post = await getPost(slug)
   if (!post) notFound()
+  const cover = post.coverImage
+  const coverUrl = cover && imageUrl(cover)
+  const parentOpenGraph = (await parent).openGraph
   return {
     title: post.title,
     description: post.summary,
     alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
-      ...(await parent).openGraph,
+      ...parentOpenGraph,
+      images: coverUrl
+        ? [{ url: coverUrl, alt: cover.alt }]
+        : parentOpenGraph?.images,
       type: "article",
       title: post.title,
       description: post.summary,
