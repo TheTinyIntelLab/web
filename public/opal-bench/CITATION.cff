@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Please cite Opal-Bench and the original data sources you use, listed in DATA_LICENSES.md."
+title: "Opal-Bench: a held-out-lab benchmark for combinatorial CRISPR growth prediction"
+authors:
+  - family-names: Prakash
+    given-names: Arjun Vijay
+    affiliation: "The Tiny Intelligence Lab"
+license: MIT
+repository-code: "https://github.com/TheTinyIntelLab/opal-bench"
+keywords: [CRISPR, genetic interactions, synthetic lethality, benchmark, few-shot]

@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: site.url },
     { url: new URL("/blog", site.url).href },
+    { url: new URL("/opal-bench", site.url).href },
     ...posts.map((post) => ({
       url: new URL(`/blog/${post.slug}`, site.url).href,
       lastModified: postModificationDate(post) ?? post.publishedAt,

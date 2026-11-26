@@ -5,10 +5,10 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { SiteShell } from "@/components/site-shell"
 import {
   about,
   opal,
+  opalBench,
   thesis,
   stoneNote,
   importantSentences,
@@ -18,15 +18,6 @@ import { JsonLd } from "@/components/json-ld"
 
 export const metadata: Metadata = {
   alternates: { canonical: site.url },
-  openGraph: {
-    type: "website",
-    siteName: site.name,
-    title: site.title,
-    description: site.description,
-    url: site.url,
-    images: [site.socialImage],
-  },
-  twitter: { card: "summary_large_image" },
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
 }
 
@@ -47,7 +38,7 @@ function CopyParagraph({ text }: { text: string }) {
 
 export default function Home() {
   return (
-    <SiteShell home>
+    <>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -87,8 +78,7 @@ export default function Home() {
             id="lab-name"
             className="-mt-3 text-[clamp(2.3rem,5vw,3.4rem)] leading-[1.15] font-normal tracking-[-0.065em] whitespace-nowrap lowercase"
           >
-            The Tiny{" "}
-            <span className="block">Intelligence Lab</span>
+            The Tiny <span className="block">Intelligence Lab</span>
           </h1>
           <p className="mt-6 w-full text-lg leading-[1.45] text-balance">
             {thesis}
@@ -164,7 +154,31 @@ export default function Home() {
             />
           </Button>
         </section>
+        <section
+          id="opal-bench"
+          className="mt-14 flex scroll-mt-6 flex-col gap-5"
+        >
+          <h2 className="text-lg leading-snug font-medium tracking-tight">
+            Opal-Bench
+          </h2>
+          <p>{opalBench}</p>
+          <Button
+            nativeButton={false}
+            role="link"
+            variant="outline"
+            className="mt-1 self-start"
+            render={<Link href="/opal-bench" />}
+          >
+            Explore Opal-Bench
+            <HugeiconsIcon
+              icon={ArrowUpRight01Icon}
+              strokeWidth={1.5}
+              aria-hidden="true"
+              data-icon="inline-end"
+            />
+          </Button>
+        </section>
       </article>
-    </SiteShell>
+    </>
   )
 }

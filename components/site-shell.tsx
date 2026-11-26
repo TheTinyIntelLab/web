@@ -1,6 +1,15 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button-variants"
+import { SiteHomeLink } from "@/components/site-home-link"
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
+} from "@/components/ui/navigation-menu"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { site } from "@/src/lib/site"
@@ -11,6 +20,7 @@ const groups = [
     links: [{ label: "Opal", href: "/#opal" }],
   },
   { title: "Updates", links: [{ label: "Blog", href: "/blog" }] },
+  { title: "Others", links: [{ label: "Opal-Bench", href: "/opal-bench" }] },
   {
     title: "The lab",
     links: [
@@ -26,13 +36,7 @@ const groups = [
     ],
   },
 ]
-export function SiteShell({
-  children,
-  home = false,
-}: {
-  children: React.ReactNode
-  home?: boolean
-}) {
+export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Button
@@ -43,61 +47,40 @@ export function SiteShell({
         className="fixed -top-24 left-4 z-50 focus:top-4"
       />
       <header className="flex items-center justify-between gap-3 px-3 py-2.5 sm:px-7 sm:py-3">
-        {!home && (
-          <Button
-            nativeButton={false}
-            role="link"
-            variant="ghost"
-            size="icon"
-            render={<Link href="/" />}
-            aria-label="The Tiny Intelligence Lab home"
-            className="relative size-11 shrink-0 overflow-hidden"
-          >
-            <Image
-              src="/logo.png"
-              alt=""
-              width={512}
-              height={512}
-              className="absolute top-1/2 left-1/2 size-28 max-w-none -translate-x-1/2 -translate-y-1/2 [clip-path:polygon(50%_32%,65%_41%,65%_58%,50%_68%,35%_58%,35%_41%)]"
-            />
-          </Button>
-        )}
-        <nav
-          aria-label="Main navigation"
-          className="ml-auto flex flex-wrap justify-end gap-1 sm:gap-3"
-        >
-          <Button
-            nativeButton={false}
-            role="link"
-            variant="ghost"
-            render={<Link href="/#about" />}
-          >
-            About
-          </Button>
-          <Button
-            nativeButton={false}
-            role="link"
-            variant="ghost"
-            render={<Link href="/#opal" />}
-          >
-            Opal
-          </Button>
-          <Button
-            nativeButton={false}
-            role="link"
-            variant="ghost"
-            render={<Link href="/blog" />}
-          >
-            Blog
-          </Button>
-        </nav>
+        <SiteHomeLink />
+        <NavigationMenu aria-label="Main navigation" className="ml-auto">
+          <NavigationMenuList className="flex-wrap justify-end gap-0 sm:gap-1">
+            {[
+              { label: "About", href: "/#about" },
+              { label: "Opal", href: "/#opal" },
+              { label: "Blog", href: "/blog" },
+            ].map((link) => (
+              <NavigationMenuItem key={link.href}>
+                <NavigationMenuLink
+                  render={<Link href={link.href} />}
+                  className={buttonVariants({ variant: "ghost" })}
+                >
+                  {link.label}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Others</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <NavigationMenuLink render={<Link href="/opal-bench" />}>
+                  Opal-Bench
+                </NavigationMenuLink>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
       </header>
       <main id="main-content" tabIndex={-1}>
         {children}
       </main>
       <footer className="mx-auto mt-18 max-w-[1100px] px-2 pb-7 sm:mt-25 sm:px-7">
         <Separator />
-        <div className="grid grid-cols-2 gap-3 pt-9 pb-12 sm:grid-cols-4 sm:gap-8">
+        <div className="grid grid-cols-2 gap-3 pt-9 pb-12 sm:grid-cols-5 sm:gap-8">
           {groups.map((group) => (
             <div key={group.title} className="flex flex-col items-start gap-1">
               <h2 className="px-3 pb-3 text-[13px] font-medium">

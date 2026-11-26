@@ -61,3 +61,9 @@ In `/studio`, write or paste Markdown into the Article text area. The blog rende
 Use Hugeicons Stroke Rounded from `@hugeicons/core-free-icons`, rendered with `HugeiconsIcon` from `@hugeicons/react`. Keep a 1.5px stroke and inherit the text color. Standalone icons use 20px; icons inside buttons follow the button's sizing and use `data-icon="inline-start"` or `data-icon="inline-end"` for spacing. Hide decorative icons from screen readers with `aria-hidden="true"` and give icon-only controls an accessible label. The stone artwork remains the lab's logo.
 
 `components.json` configures shadcn to use Hugeicons for newly added components.
+
+## Opal-Bench page sync
+
+`pnpm build` syncs the leaderboard, runnable examples and citation from the Opal-Bench repository's `main` branch. Use `pnpm sync:opal-bench` to refresh them during development. The build fails if GitHub is unavailable or the leaderboard has no valid rows.
+
+Set `GITHUB_TOKEN` to authenticate the sync when GitHub's anonymous API quota is too low for your builds.

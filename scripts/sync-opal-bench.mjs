@@ -1,0 +1,143 @@
+import { writeFile } from "node:fs/promises"
+
+const root = new URL("../", import.meta.url)
+const repo = "https://github.com/TheTinyIntelLab/opal-bench"
+const api = "https://api.github.com/repos/TheTinyIntelLab/opal-bench"
+
+async function get(url) {
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(30000),
+    headers:
+      url.startsWith(api) && process.env.GITHUB_TOKEN
+        ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+        : undefined,
+  })
+  if (!response.ok)
+    throw new Error(`Opal-Bench sync: ${response.status} ${url}`)
+  return response
+}
+
+// Fetch every source file from the same commit.
+const { sha } = await (await get(`${api}/commits/main`)).json()
+if (!/^[a-f0-9]{40}$/.test(sha)) throw new Error("Invalid GitHub commit")
+const raw = `https://raw.githubusercontent.com/TheTinyIntelLab/opal-bench/${sha}/`
+const files = ["README.md", "leaderboard/LEADERBOARD.md", "CITATION.cff"]
+const [readme, leaderboard, citation] = await Promise.all(
+  files.map(async (path) => (await get(raw + path)).text())
+)
+
+const metricHeaders = [
+  "method",
+  "ratio vs MID",
+  "rank [95% CI]",
+  "P(rank 1)",
+  "units better than MID",
+]
+const decimal = /^\d+(?:\.\d+)?$/
+
+const tracks = []
+let group = ""
+let track
+let budget
+for (const line of leaderboard.split(/\r?\n/)) {
+  if (line.startsWith("## ")) {
+    group = line.slice(3)
+    track = undefined
+    budget = undefined
+    continue
+  }
+  if (line.startsWith("### ")) {
+    track = {
+      id: `track-${tracks.length}`,
+      title: `${group} — ${line.slice(4)}`,
+      label: line.slice(4).split(":")[0],
+      group,
+      note: "",
+      budgets: [],
+    }
+    budget = undefined
+    continue
+  }
+  const k = line.match(/^#### k = (\d+)\s*$/)
+  if (k && track) {
+    if (!tracks.includes(track)) tracks.push(track)
+    budget = { k: Number(k[1]), headers: [], rows: [] }
+    track.budgets.push(budget)
+  } else if (budget && line.startsWith("|")) {
+    const cells = line
+      .slice(1, line.lastIndexOf("|"))
+      .split("|")
+      .map((cell) => cell.trim())
+    if (cells.every((cell) => /^:?-+:?$/.test(cell))) continue
+    if (!budget.headers.length) {
+      if (
+        cells.length !== metricHeaders.length ||
+        metricHeaders.some((header, index) => cells[index] !== header)
+      ) {
+        throw new Error(`Invalid leaderboard headers: ${line}`)
+      }
+      budget.headers = cells
+    } else {
+      const [method, ratio, rank, probability, units] = cells
+      const interval = rank?.match(/^[1-9]\d* \[([1-9]\d*)[–-]([1-9]\d*)\]$/)
+      const counts = units?.match(/^(\d+)\/([1-9]\d*)$/)
+      if (
+        cells.length !== budget.headers.length ||
+        !method ||
+        !decimal.test(ratio) ||
+        !Number.isFinite(Number(ratio)) ||
+        !interval ||
+        Number(interval[1]) > Number(interval[2]) ||
+        !decimal.test(probability) ||
+        Number(probability) > 1 ||
+        !counts ||
+        Number(counts[1]) > Number(counts[2])
+      ) {
+        throw new Error(`Invalid leaderboard row: ${line}`)
+      }
+      budget.rows.push(cells)
+    }
+  } else if (track && !budget && line.trim()) track.note += `${line}\n`
+}
+if (!tracks.some((item) => item.budgets.some((item) => item.rows.length))) {
+  throw new Error("Opal-Bench sync found no leaderboard rows")
+}
+if (tracks.some((item) => item.budgets.some((item) => !item.rows.length))) {
+  throw new Error("Opal-Bench sync found an empty leaderboard budget")
+}
+const defaultTrack = tracks.find((track) => /Locked test/i.test(track.title))
+if (!defaultTrack?.budgets.some((budget) => budget.k === 20))
+  throw new Error("Missing locked test k = 20")
+
+// Keep the runnable examples in step with the README.
+const commands = readme
+  .split(/\r?\n/)
+  .map((line) => line.replace(/\s+#.*$/, "").trim())
+const install = commands.find((line) =>
+  line.startsWith("python -m pip install ")
+)
+const score = commands.find((line) => line === "opal-bench-score fewshot")
+const submission = commands.find((line) =>
+  line.startsWith("opal-bench-score fewshot --method ")
+)
+if (!install || !score || !submission)
+  throw new Error("Missing README scoring commands")
+await writeFile(new URL("public/opal-bench/CITATION.cff", root), citation)
+await writeFile(
+  new URL("src/content/opal-bench.json", root),
+  JSON.stringify(
+    {
+      repo,
+      sha,
+      syncedAt: new Date().toISOString().slice(0, 10),
+      tagline: readme.match(/<p>([^<]+)<\/p>/)?.[1],
+      quickstart: `${install}\n${score}`,
+      submission,
+      tracks,
+      defaultTrack: defaultTrack.id,
+    },
+    null,
+    2
+  ) + "\n"
+)
+console.log(`Synced Opal-Bench ${sha.slice(0, 7)}: ${tracks.length} tracks`)
