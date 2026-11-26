@@ -26,6 +26,15 @@ const [readme, leaderboard, citation] = await Promise.all(
   files.map(async (path) => (await get(raw + path)).text())
 )
 
+const metricHeaders = [
+  "method",
+  "ratio vs MID",
+  "rank [95% CI]",
+  "P(rank 1)",
+  "units better than MID",
+]
+const decimal = /^\d+(?:\.\d+)?$/
+
 const tracks = []
 let group = ""
 let track
@@ -61,12 +70,28 @@ for (const line of leaderboard.split(/\r?\n/)) {
       .map((cell) => cell.trim())
     if (cells.every((cell) => /^:?-+:?$/.test(cell))) continue
     if (!budget.headers.length) {
+      if (
+        cells.length !== metricHeaders.length ||
+        metricHeaders.some((header, index) => cells[index] !== header)
+      ) {
+        throw new Error(`Invalid leaderboard headers: ${line}`)
+      }
       budget.headers = cells
     } else {
+      const [method, ratio, rank, probability, units] = cells
+      const interval = rank?.match(/^[1-9]\d* \[([1-9]\d*)[–-]([1-9]\d*)\]$/)
+      const counts = units?.match(/^(\d+)\/([1-9]\d*)$/)
       if (
         cells.length !== budget.headers.length ||
-        cells[1] === "" ||
-        !Number.isFinite(Number(cells[1]))
+        !method ||
+        !decimal.test(ratio) ||
+        !Number.isFinite(Number(ratio)) ||
+        !interval ||
+        Number(interval[1]) > Number(interval[2]) ||
+        !decimal.test(probability) ||
+        Number(probability) > 1 ||
+        !counts ||
+        Number(counts[1]) > Number(counts[2])
       ) {
         throw new Error(`Invalid leaderboard row: ${line}`)
       }
