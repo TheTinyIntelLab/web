@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises"
+import { writeFile } from "node:fs/promises"
 
 const root = new URL("../", import.meta.url)
 const repo = "https://github.com/TheTinyIntelLab/opal-bench"
@@ -17,7 +17,7 @@ async function get(url) {
   return response
 }
 
-// Resolve main once so documents, results and figures come from one snapshot.
+// Fetch every source file from the same commit.
 const { sha } = await (await get(`${api}/commits/main`)).json()
 if (!/^[a-f0-9]{40}$/.test(sha)) throw new Error("Invalid GitHub commit")
 const raw = `https://raw.githubusercontent.com/TheTinyIntelLab/opal-bench/${sha}/`
@@ -30,7 +30,6 @@ const tracks = []
 let group = ""
 let track
 let budget
-let headers
 for (const line of leaderboard.split(/\r?\n/)) {
   if (line.startsWith("## ")) {
     group = line.slice(3)
@@ -55,19 +54,17 @@ for (const line of leaderboard.split(/\r?\n/)) {
     if (!tracks.includes(track)) tracks.push(track)
     budget = { k: Number(k[1]), headers: [], rows: [] }
     track.budgets.push(budget)
-    headers = undefined
   } else if (budget && line.startsWith("|")) {
     const cells = line
       .slice(1, line.lastIndexOf("|"))
       .split("|")
       .map((cell) => cell.trim())
     if (cells.every((cell) => /^:?-+:?$/.test(cell))) continue
-    if (!headers) {
-      headers = cells
+    if (!budget.headers.length) {
       budget.headers = cells
     } else {
       if (
-        cells.length !== headers.length ||
+        cells.length !== budget.headers.length ||
         !Number.isFinite(Number(cells[1]))
       ) {
         throw new Error(`Invalid leaderboard row: ${line}`)
@@ -99,8 +96,6 @@ const submission = commands.find((line) =>
 )
 if (!install || !score || !submission)
   throw new Error("Missing README scoring commands")
-await mkdir(new URL("public/opal-bench/", root), { recursive: true })
-await mkdir(new URL("src/content/", root), { recursive: true })
 await writeFile(new URL("public/opal-bench/CITATION.cff", root), citation)
 await writeFile(
   new URL("src/content/opal-bench.json", root),
