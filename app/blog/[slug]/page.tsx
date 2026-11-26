@@ -124,7 +124,7 @@ export default async function Article({ params }: Props) {
             className="relative left-1/2 mb-9 h-auto w-[min(150%,calc(100vw-40px))] max-w-none -translate-x-1/2 rounded-lg"
           />
         )}
-        <ArticleBody body={post.markdown} />
+        <ArticleBody body={post.markdown} navigation />
       </article>
     </SiteShell>
   )
