@@ -9,6 +9,7 @@ import { SiteShell } from "@/components/site-shell"
 import {
   about,
   opal,
+  opalBench,
   thesis,
   stoneNote,
   importantSentences,
@@ -78,8 +79,7 @@ export default function Home() {
             id="lab-name"
             className="-mt-3 text-[clamp(2.3rem,5vw,3.4rem)] leading-[1.15] font-normal tracking-[-0.065em] whitespace-nowrap lowercase"
           >
-            The Tiny{" "}
-            <span className="block">Intelligence Lab</span>
+            The Tiny <span className="block">Intelligence Lab</span>
           </h1>
           <p className="mt-6 w-full text-lg leading-[1.45] text-balance">
             {thesis}
@@ -147,6 +147,35 @@ export default function Home() {
             render={<Link href="/blog" />}
           >
             Read the blog
+            <HugeiconsIcon
+              icon={ArrowUpRight01Icon}
+              strokeWidth={1.5}
+              aria-hidden="true"
+              data-icon="inline-end"
+            />
+          </Button>
+        </section>
+        <section
+          id="opal-bench"
+          className="mt-14 flex scroll-mt-6 flex-col gap-5"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-lg leading-snug font-medium tracking-tight">
+              Opal-Bench
+            </h2>
+            <Badge variant="secondary">Released</Badge>
+          </div>
+          {opalBench.map((text) => (
+            <p key={text}>{text}</p>
+          ))}
+          <Button
+            nativeButton={false}
+            role="link"
+            variant="outline"
+            className="mt-1 self-start"
+            render={<Link href="/opal-bench" />}
+          >
+            Explore Opal-Bench
             <HugeiconsIcon
               icon={ArrowUpRight01Icon}
               strokeWidth={1.5}

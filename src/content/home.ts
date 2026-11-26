@@ -32,3 +32,8 @@ export const opal = [
   "The model adds the two individual effects, then learns a correction for how they interact. Swapping the inputs gives the same prediction.",
   "Results in one biological setting don't establish how Opal performs in other cell types or conditions; those need their own tests.",
 ]
+
+export const opalBench = [
+  "Opal-Bench is released. It measures how well a method predicts combinatorial CRISPR growth in a lab it hasn't seen. You get the target screen's single-gene scores and a small set of measured pairs, then predict the rest. Entire labs are held out to test whether the method transfers.",
+  "The release includes scoring code, redistributable data and a leaderboard, alongside the experiments that didn't work. The page explains what you can reproduce, which source data are restricted, and how to submit a method.",
+]
