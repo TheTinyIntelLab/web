@@ -14,6 +14,8 @@ export const metadata: Metadata = {
 }
 
 export default function OpalBench() {
+  const source = `${data.repo}/blob/${data.sha ?? "main"}`
+
   return (
     <article className="mx-auto w-[calc(100%-40px)] max-w-[660px] text-[17px] leading-relaxed sm:w-[calc(100%-48px)] sm:text-lg">
       <header className="pt-13 pb-12 sm:pt-22 sm:pb-16">
@@ -60,11 +62,18 @@ export default function OpalBench() {
           </a>
         </div>
         <p className="mt-5 font-heading text-xs text-muted-foreground">
-          Synced from GitHub on{" "}
-          <time dateTime={data.syncedAt}>{data.syncedAt}</time> ·{" "}
-          <a href={`${data.repo}/commit/${data.sha}`} className="underline">
-            View source commit
-          </a>
+          {data.sha
+            ? "Synced from GitHub on "
+            : "Local working-tree snapshot synced on "}
+          <time dateTime={data.syncedAt}>{data.syncedAt}</time>
+          {data.sha && (
+            <>
+              {" · "}
+              <a href={`${data.repo}/commit/${data.sha}`} className="underline">
+                View source commit
+              </a>
+            </>
+          )}
         </p>
       </header>
       <p>
@@ -96,11 +105,12 @@ export default function OpalBench() {
       <section id="leaderboard" className="mt-10 scroll-mt-8">
         <h2 className="mb-5 text-[22px] leading-snug">Leaderboard</h2>
         <p>
-          Scores compare each method&apos;s mean squared error with MID, a
-          baseline built from single-gene scores. Lower is better, and each lab
-          gets equal weight.{" "}
+          Few-shot scores compare each method&apos;s mean squared error with
+          MID, a baseline built from single-gene scores. Lower is better, and
+          each lab gets equal weight. Select a supplemental track to see its own
+          metrics.{" "}
           <a
-            href={`${data.repo}/blob/main/leaderboard/LEADERBOARD.md`}
+            href={`${source}/leaderboard/LEADERBOARD.md`}
             className="underline"
           >
             Method definitions and scoring details
@@ -110,6 +120,13 @@ export default function OpalBench() {
         <OpalLeaderboard
           tracks={data.tracks}
           defaultTrack={data.defaultTrack}
+          footprint={data.footprint}
+          supplemental={data.supplemental}
+          prospectiveProtocol={
+            data.prospective ? (
+              <ArticleBody body={data.prospective} />
+            ) : undefined
+          }
         />
       </section>
       <section id="run" className="mt-12 scroll-mt-8">
