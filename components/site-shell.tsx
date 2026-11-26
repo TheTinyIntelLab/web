@@ -1,8 +1,15 @@
 import Link from "next/link"
 import Image from "next/image"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowDown01Icon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/button"
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { site } from "@/src/lib/site"
@@ -65,58 +72,36 @@ export function SiteShell({
             />
           </Button>
         )}
-        <nav
+        <NavigationMenu
           aria-label="Main navigation"
-          className="ml-auto flex flex-wrap justify-end gap-1 sm:gap-3"
+          align="end"
+          className="ml-auto"
         >
-          <Button
-            nativeButton={false}
-            role="link"
-            variant="ghost"
-            render={<Link href="/#about" />}
-          >
-            About
-          </Button>
-          <Button
-            nativeButton={false}
-            role="link"
-            variant="ghost"
-            render={<Link href="/#opal" />}
-          >
-            Opal
-          </Button>
-          <Button
-            nativeButton={false}
-            role="link"
-            variant="ghost"
-            render={<Link href="/blog" />}
-          >
-            Blog
-          </Button>
-          <details className="group relative">
-            <summary className="flex min-h-9 cursor-pointer list-none items-center rounded-md px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">
-              Others{" "}
-              <HugeiconsIcon
-                icon={ArrowDown01Icon}
-                size={14}
-                strokeWidth={1.5}
-                aria-hidden="true"
-                className="ml-2"
-              />
-            </summary>
-            <div className="absolute right-0 z-20 mt-2 min-w-40 rounded-md border bg-popover p-1 text-popover-foreground shadow-sm">
-              <Button
-                nativeButton={false}
-                role="link"
-                variant="ghost"
-                render={<Link href="/opal-bench" />}
-                className="w-full justify-start"
-              >
-                Opal-Bench
-              </Button>
-            </div>
-          </details>
-        </nav>
+          <NavigationMenuList className="flex-wrap justify-end gap-0 sm:gap-1">
+            {[
+              { label: "About", href: "/#about" },
+              { label: "Opal", href: "/#opal" },
+              { label: "Blog", href: "/blog" },
+            ].map((link) => (
+              <NavigationMenuItem key={link.href}>
+                <NavigationMenuLink
+                  render={<Link href={link.href} />}
+                  className={navigationMenuTriggerStyle()}
+                >
+                  {link.label}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Others</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <NavigationMenuLink render={<Link href="/opal-bench" />}>
+                  Opal-Bench
+                </NavigationMenuLink>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
       </header>
       <main id="main-content" tabIndex={-1}>
         {children}
