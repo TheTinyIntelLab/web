@@ -75,96 +75,89 @@ export default function OpalBench() {
             </a>
           </p>
         </header>
-        <ArticleBody body={data.intro} />
+        <ArticleBody body={data.intro.split(/\r?\n\r?\n/)[0]} />
         <nav
           aria-label="On this page"
           className="mt-8 flex flex-wrap gap-x-5 gap-y-3 border-y py-5 text-xs text-muted-foreground"
         >
-          {data.sections.map((section) => (
-            <a
-              key={section.id}
-              href={`#${section.id}`}
-              className="hover:text-foreground hover:underline"
-            >
-              {section.title}
-            </a>
-          ))}
-        </nav>
-        {data.sections.map((section) => (
-          <section
-            key={section.id}
-            id={section.id}
-            className="mt-12 scroll-mt-8 border-b pb-12 last:border-0"
+          <a
+            href="#leaderboard"
+            className="hover:text-foreground hover:underline"
           >
-            <h2 className="mb-6 text-lg leading-snug font-medium tracking-tight">
-              {section.title}
-            </h2>
-            {section.id === "results" ? (
-              <>
-                <ArticleBody
-                  body={
-                    section.body.split(
-                      /### Locked test[^\n]*\n\s*(?:\|[^\n]*\n)+/
-                    )[0]
-                  }
-                />
-                <div id="leaderboard" className="scroll-mt-8">
-                  <OpalLeaderboard
-                    tracks={data.tracks}
-                    defaultTrack={data.defaultTrack}
-                  />
-                </div>
-                <ArticleBody
-                  body={section.body
-                    .split(/### Locked test[^\n]*\n\s*(?:\|[^\n]*\n)+/)
-                    .slice(1)
-                    .join("\n")}
-                />
-                <Accordion multiple className="mt-6">
-                  <AccordionItem value="provenance">
-                    <AccordionTrigger>
-                      Metric, method names and provenance
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <ArticleBody body={data.leaderboardNotes} />
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="negative-results">
-                    <AccordionTrigger>
-                      Read the negative results
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <ArticleBody body={data.negative} />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </>
-            ) : (
-              <ArticleBody body={section.body} />
-            )}
-            {section.id === "license" && (
-              <Accordion className="mt-6">
-                <AccordionItem value="licenses">
-                  <AccordionTrigger>
-                    Per-source data licences and redistribution audit
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <ArticleBody body={data.licenses} />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            )}
-            {section.id === "citation" && (
-              <a
-                href="/opal-bench/CITATION.cff"
-                download
-                className="mt-6 inline-block min-h-11 font-heading text-sm underline"
+            Leaderboard
+          </a>
+          <a href="#details" className="hover:text-foreground hover:underline">
+            Details and documentation
+          </a>
+        </nav>
+        <section id="leaderboard" className="mt-10 scroll-mt-8">
+          <h2 className="text-lg font-medium tracking-tight">Leaderboard</h2>
+          <OpalLeaderboard
+            tracks={data.tracks}
+            defaultTrack={data.defaultTrack}
+          />
+        </section>
+        <section id="details" className="mt-12 scroll-mt-8">
+          <h2 className="mb-6 text-lg font-medium tracking-tight">
+            Details and documentation
+          </h2>
+          <Accordion multiple>
+            {data.sections.map((section) => (
+              <AccordionItem
+                key={section.id}
+                id={section.id}
+                value={section.id}
               >
-                Download CITATION.cff
-              </a>
-            )}
-          </section>
-        ))}
+                <AccordionTrigger>{section.title}</AccordionTrigger>
+                <AccordionContent>
+                  <ArticleBody body={section.body} />
+                  {section.id === "results" && (
+                    <Accordion multiple className="mt-6">
+                      <AccordionItem value="provenance">
+                        <AccordionTrigger>
+                          Metric and method provenance
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <ArticleBody body={data.leaderboardNotes} />
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="negative-results">
+                        <AccordionTrigger>Negative results</AccordionTrigger>
+                        <AccordionContent>
+                          <ArticleBody body={data.negative} />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  )}
+                  {section.id === "data-and-reproduction" && (
+                    <div className="mt-6">
+                      <ArticleBody
+                        body={data.intro
+                          .split(/\r?\n\r?\n/)
+                          .slice(1)
+                          .join("\n\n")}
+                      />
+                    </div>
+                  )}
+                  {section.id === "license" && (
+                    <div className="mt-6">
+                      <ArticleBody body={data.licenses} />
+                    </div>
+                  )}
+                  {section.id === "citation" && (
+                    <a
+                      href="/opal-bench/CITATION.cff"
+                      download
+                      className="mt-6 inline-block min-h-11 font-heading text-sm underline"
+                    >
+                      Download CITATION.cff
+                    </a>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
       </article>
     </SiteShell>
   )

@@ -34,6 +34,5 @@ export const opal = [
 ]
 
 export const opalBench = [
-  "Opal-Bench is released. It measures how well a method predicts combinatorial CRISPR growth in a lab it hasn't seen. You get the target screen's single-gene scores and a small set of measured pairs, then predict the rest. Entire labs are held out to test whether the method transfers.",
-  "The release includes scoring code, redistributable data and a leaderboard, alongside the experiments that didn't work. The page explains what you can reproduce, which source data are restricted, and how to submit a method.",
+  "Opal-Bench tests whether a method can predict combinatorial CRISPR growth in a lab it hasn't seen, using single-gene scores and a few measured pairs. Scoring code, redistributable data and the leaderboard are public.",
 ]

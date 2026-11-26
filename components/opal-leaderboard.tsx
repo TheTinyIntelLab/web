@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableHeader,
@@ -29,8 +30,13 @@ export function OpalLeaderboard({
 }) {
   const [trackId, setTrackId] = useState(defaultTrack)
   const [k, setK] = useState(20)
+  const [expanded, setExpanded] = useState(false)
   const track = tracks.find((item) => item.id === trackId)!
   const budget = track.budgets.find((item) => item.k === k)!
+  const rows = expanded
+    ? budget.rows
+    : budget.rows.filter((row, index) => index < 5 || row[0] === "MID")
+  const headers = expanded ? budget.headers : budget.headers.slice(0, 3)
 
   return (
     <div className="my-8 min-w-0 font-heading text-sm">
@@ -81,24 +87,31 @@ export function OpalLeaderboard({
           </NativeSelect>
         </label>
       </div>
-      <p className="mt-4 text-sm leading-relaxed">{track.title}</p>
+      <p className="mt-4 text-sm leading-relaxed">
+        {track.title.split(" — ").at(-1)}
+      </p>
       {track.note && (
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
           {track.note}
         </p>
       )}
       <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
-        {budget.rows.length} methods · k = {k} · Lower error ratios are better.
+        Showing {rows.length} of {budget.rows.length} methods · Lower ratios are
+        better.
       </p>
       <div className="mt-4">
-        <Table className="w-full min-w-[640px] border-collapse text-left text-xs tabular-nums sm:text-sm">
+        <Table
+          id="opal-leaderboard-results"
+          data-expanded={expanded}
+          className="w-full min-w-[420px] border-collapse text-left text-xs tabular-nums data-[expanded=true]:min-w-[640px] sm:text-sm"
+        >
           <TableCaption className="sr-only">
-            {track.title}, k = {k}. Error relative to MID, bootstrap ranks,
-            probability of first rank and units better than MID.
+            {track.title}, k = {k}. Error relative to MID and bootstrap rank
+            intervals.
           </TableCaption>
           <TableHeader>
             <TableRow className="border-y">
-              {budget.headers.map((header) => (
+              {headers.map((header) => (
                 <TableHead
                   key={header}
                   scope="col"
@@ -110,12 +123,12 @@ export function OpalLeaderboard({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {budget.rows.map((row) => (
+            {rows.map((row) => (
               <TableRow
                 key={row[0]}
                 className={row[0] === "MID" ? "border-b bg-muted" : "border-b"}
               >
-                {row.map((cell, index) => {
+                {row.slice(0, headers.length).map((cell, index) => {
                   const text =
                     index === 0
                       ? cell.replace(
@@ -145,11 +158,17 @@ export function OpalLeaderboard({
           </TableBody>
         </Table>
       </div>
+      <Button
+        variant="ghost"
+        className="mt-3"
+        aria-expanded={expanded}
+        aria-controls="opal-leaderboard-results"
+        onClick={() => setExpanded(!expanded)}
+      >
+        {expanded ? "Show summary" : "Show full leaderboard"}
+      </Button>
       <p className="mt-3 text-xs leading-relaxed text-muted-foreground sm:hidden">
         Scroll horizontally to see all columns.
-      </p>
-      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-        Method markers and reproduction details are explained below.
       </p>
     </div>
   )
